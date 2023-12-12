@@ -5,7 +5,7 @@
 # Allows using your Synology expansion unit
 # in Synology NAS models that aren't on their supported model list.
 #
-# Github: https://github.com/007revad/Synology_expansion_unit
+# Github: https://github.com/007revad/Synology_enable_eunit
 # Script verified at https://www.shellcheck.net/
 #
 # To run in a shell (replace /volume1/scripts/ with path to script):
@@ -310,31 +310,14 @@ if [[ -f /etc.defaults/model.dtb ]]; then  # Is device tree model
         hwrev="_$hwrevision"
     fi
 
-    scemd="/usr/syno/bin/scemd"
-
     dtb_file="/etc.defaults/model${hwrev}.dtb"
     dtb2_file="/etc/model${hwrev}.dtb"
     #dts_file="/etc.defaults/model${hwrev}.dts"
     dts_file="/tmp/model${hwrev}.dts"
-
-
-dtb_file="/volume1/temp/__test3/${model}/model${hwrev}.dtb"    # test ###################
-dtb2_file="/volume1/temp/__test3/${model}/model${hwrev}2.dtb"  # test ###################
-dts_file="/volume1/temp/__test3/${model}/model${hwrev}.dts"    # test ###################
-
-
 fi
 
-synoinfo="/etc.defaults/synoinfo.conf"                    # test ###################
-#m2cardconf="/usr/syno/etc.defaults/adapter_cards.conf"   # test ###################
-#m2cardconf2="/usr/syno/etc/adapter_cards.conf"           # test ###################
-
-synoinfo="/volume1/temp/__test3/${model}/synoinfo.conf"            # test ###################
-#m2cardconf="/volume1/temp/__test2/${model}/adapter_cards.conf"    # test ###################
-#m2cardconf2="/volume1/temp/__test2/${model}/adapter_cards2.conf"  # test ###################
-
-scemd="/volume1/temp/__test3/${model}/scemd"              # test ###################
-
+synoinfo="/etc.defaults/synoinfo.conf"
+scemd="/usr/syno/bin/scemd"
 
 #------------------------------------------------------------------------------
 # Restore changes from backups
@@ -530,7 +513,8 @@ edit_synoinfo(){
         # support_ew_20_eunit="Synology-DX517,Synology-RX418"        
         setting=$(synogetkeyvalue "$synoinfo" support_ew_20_eunit)
         if [[ $setting != *"$1"* ]]; then
-            backupdb "$synoinfo" long || exit 1
+            #backupdb "$synoinfo" long || exit 1  # debug
+            backupdb "$synoinfo" || exit 1
             newsetting="${setting},Synology-${1}"
             if synosetkeyvalue "$synoinfo" support_ew_20_eunit "$newsetting"; then
                 echo -e "Enabled ${Yellow}$1${Off} in ${Cyan}synoinfo.conf${Off}" >&2
@@ -562,7 +546,7 @@ findbytes(){
         seek="$match"
         xxd=$(xxd -u -l 6 -s "$seek" "$1")
         #echo "4: $xxd" >&2  # debug
-        printf %s "$xxd" | cut -d" " -f1-4
+        #printf %s "$xxd" | cut -d" " -f1-4  # debug
         bytes=$(printf %s "$xxd" | cut -d" " -f2)
         #echo "5: $bytes" >&2  # debug
     else
@@ -575,7 +559,8 @@ enable_eunit(){
     # $1 is the file
     # $2 is the eunit model
     if [[ -f $1 ]] && [[ -n $2 ]]; then
-        backupdb "$1" long || exit 1
+        #backupdb "$1" long || exit 1  # debug
+        backupdb "$1" || exit 1
         if ! grep -q "$2" "$1"; then
             hexold="44 58 31 32 32 32"  # DX1222
 
@@ -910,7 +895,8 @@ edit_modeldtb(){
         if [[ -x /usr/sbin/dtc ]]; then
 
             # Backup model.dtb
-            backupdb "$dtb_file" long || exit 1
+            #backupdb "$dtb_file" long || exit 1  # debug
+            backupdb "$dtb_file" || exit 1
 
             # Output model.dtb to model.dts
             dtc -q -I dtb -O dts -o "$dts_file" "$dtb_file"  # -q Suppress warnings
