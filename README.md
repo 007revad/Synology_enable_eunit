@@ -8,6 +8,8 @@
 ### Description
 Enable an unsupported Expansion Unit
 
+***COMING SOON...***
+
 This script will enable a choice of DX517, DX513, DX213, RX418 or RX415.
 
 I'm not sure if the RS models would only be able to use 4 of the 5 bays in a DX517.
