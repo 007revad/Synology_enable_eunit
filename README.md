@@ -33,4 +33,4 @@ I'm 99% certain it will work for the following Synology NAS models:
 - RS1221+
 - RS1221RP+
 
-<p align="center"><img src="/images/temp.png"></p>
+<p align="center"><img src="/images/esata.png"></p>
