@@ -6,31 +6,73 @@
 [![committers.top badge](https://user-badge.committers.top/australia/007revad.svg)](https://user-badge.committers.top/australia/007revad)
 
 ### Description
-Enable an unsupported Expansion Unit
+Enable an unsupported Synology eSATA Expansion Unit models
 
-***COMING SOON...***
+This script will enable a choice of DX517, DX513, DX213, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
 
-This script will enable a choice of DX517, DX513, DX213, RX418 or RX415.
+You can enable DX517, RX418 and a 3rd model of either DX513, DX213, RX415 or RX410.
 
-I'm not sure if the RS models would only be able to use 4 of the 5 bays in a DX517.
+**Note:** If you later want to change the 3rd model you need to:
+1. Run the script with the --restore option.
+2. Run the script to enable your chosen expansion unit.
+3. Reboot.
 
-- The following DS models already have DX517 enabled.
-- The following RS models already have RX418 enabled.
+<br>
 
-I'm 99% certain it will work for the following Synology NAS models:
+**Warning**
 
-- DS720+ 
-- DS723+
-- DS920+
-- DS923+
-- DS1520+
-- DS1522+
-- DS1621+
-- DS1821+
-- DS1823xs+
-- RS822+
-- RS822RP+
-- RS1221+
-- RS1221RP+
+Do not span a storage pool between the NAS and Expansion Unit. After a DSM update the Expansion Unit will be unsupported until you run this script again, which will be hard to do if your only storage pool is offline. Also do not store this script on the epansion unit.
 
-<p align="center"><img src="/images/temp.png"></p>
+<br>
+
+I'm not sure if the RS models would only be able to use 4 of the 5 bays in a DX517 if the total drive number exceded the models' max drive number.
+
+For example:
+- An RS822+ may only see 4 drives in a DX517.
+- An RS1221+ may only see 8 drives in two DX517.
+
+<br>
+
+## Supported Models
+
+I'm 99% certain this script will work for the following Synology NAS models:
+
+| Model | Works | Commment |
+|-------|-------|----------|
+| DS720+ | ??? | |
+| DS723+ | ??? | |
+| DS920+ | ??? | |
+| DS923+ | ??? | |
+| DS1520+ | ??? | |
+| DS1522+ | ??? | |
+| DS1621+ | ??? | |
+| DS1821+ | ??? | |
+| DS1823xs+ | ??? | |
+| RS822+, RS822RP+ | ??? | |
+| RS1221+, RS1221RP+ | ??? | |
+
+- The DiskStation models above already have DX517 enabled, and RX418 partially enabled.
+- The RackStation models above already have RX418 enabled, and DX517 partially enabled.
+
+<br>
+
+## Screenshots
+
+<p align="center">Enable DX513</p>
+<p align="center"><img src="/images/esata.png"></p>
+
+<p align="center">Check option</p>
+<p align="center"><img src="/images/enable_dx513.png"></p>
+
+<p align="center">DS models with eSATA posts only partially have RX418 enabled</p>
+<p align="center"><img src="/images/default.png"></p>
+
+<p align="center">Enable RX418</p>
+<p align="center"><img src="/images/enable_rx418.png"></p>
+
+<p align="center">Check option again</p>
+<p align="center"><img src="/images/enabled_3.png"></p>
+
+<p align="center">Restore option</p>
+<p align="center"><img src="/images/restore.png"></p>
+
