@@ -20,8 +20,8 @@ You can enable DX517, RX418 and a 3rd model of either DX513, DX213, RX415 or RX4
 <br>
 
 **Warning**
-
-Do not span a storage pool between the NAS and Expansion Unit. After a DSM update the Expansion Unit will be unsupported until you run this script again, which will be hard to do if your only storage pool is offline. Also do not store this script on the epansion unit.
+    
+Do ***NOT*** span a storage pool between the NAS and Expansion Unit. After a DSM update the Expansion Unit will be unsupported until you run this script again, which will be hard to do if your only storage pool is offline. Also do ***NOT*** store this script on a volume in the expansion unit.
 
 <br>
 
@@ -31,7 +31,6 @@ For example:
 - An RS822+ may only see 4 drives in a DX517.
 - An RS1221+ may only see 8 drives in two DX517.
 
-<br>
 
 ## Supported Models
 
@@ -53,6 +52,36 @@ I'm 99% certain this script will work for the following Synology NAS models:
 
 - The DiskStation models above already have DX517 enabled, and RX418 partially enabled.
 - The RackStation models above already have RX418 enabled, and DX517 partially enabled.
+
+
+## Download the script
+
+See <a href=images/how_to_download_generic.png/>How to download the script</a> for the easiest way to download the script.
+
+Do ***NOT*** save the script to a volumes in the expansion unit as the volume won't be available until after the script has run.
+
+## How to run the script
+
+### Run the script via SSH
+
+**Note:** Replace /volume1/scripts/ with the path to where the script is located.
+Run the script then reboot the Synology:
+
+    ```YAML
+    sudo -i /volume1/scripts/syno_enable_eunit.sh
+    ```
+
+**Options:**
+```YAML
+  -c, --check      Check expansion unit status
+  -r, --restore    Restore backup to undo changes
+  -h, --help       Show this help message
+  -v, --version    Show the script version
+```
+
+## What about DSM updates?
+
+After any DSM update you will need to run this script again. 
 
 <br>
 
