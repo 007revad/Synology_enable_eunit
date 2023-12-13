@@ -59,19 +59,19 @@ I'm 99% certain this script will work for the following Synology NAS models:
 ## Screenshots
 
 <p align="center">Enable DX513</p>
-<p align="center"><img src="/images/esata.png"></p>
+<p align="center"><img src="/images/esatab.png"></p>
 
 <p align="center">Check option</p>
-<p align="center"><img src="/images/enable_dx513.png"></p>
+<p align="center"><img src="/images/enable_dx513b.png"></p>
 
 <p align="center">DS models with eSATA posts only partially have RX418 enabled</p>
 <p align="center"><img src="/images/default.png"></p>
 
 <p align="center">Enable RX418</p>
-<p align="center"><img src="/images/enable_rx418.png"></p>
+<p align="center"><img src="/images/enable_rx418b.png"></p>
 
 <p align="center">Check option again</p>
-<p align="center"><img src="/images/enabled_3.png"></p>
+<p align="center"><img src="/images/enabled_3b.png"></p>
 
 <p align="center">Restore option</p>
 <p align="center"><img src="/images/restore.png"></p>
