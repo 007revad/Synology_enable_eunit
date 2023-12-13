@@ -31,7 +31,6 @@ For example:
 - An RS822+ may only see 4 drives in a DX517.
 - An RS1221+ may only see 8 drives in two DX517.
 
-<br>
 
 ## Supported Models
 
