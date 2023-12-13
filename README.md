@@ -69,9 +69,7 @@ Do ***NOT*** save the script to a volumes in the expansion unit as the volume wo
 **Note:** Replace /volume1/scripts/ with the path to where the script is located.
 Run the script then reboot the Synology:
 
-    ```YAML
     sudo -i /volume1/scripts/syno_enable_eunit.sh
-    ```
 
 **Options:**
 ```YAML
