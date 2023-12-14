@@ -68,7 +68,9 @@ See <a href=images/how_to_download_generic.png/>How to download the script</a> f
 
 Run the script then reboot the Synology:
 
-    sudo -i /volume1/scripts/syno_enable_eunit.sh
+```bash
+sudo -i /volume1/scripts/syno_enable_eunit.sh
+```
 
 > **Note** <br>
 > Replace /volume1/scripts/ with the path to where the script is located.
