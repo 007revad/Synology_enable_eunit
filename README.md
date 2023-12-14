@@ -21,9 +21,8 @@ If you have 2 of the same expansion unit model you only need to enable it once f
 
 <br>
 
-**Warning**
-    
-Do ***NOT*** span a storage pool between the NAS and Expansion Unit. After a DSM update the Expansion Unit will be unsupported until you run this script again, which will be hard to do if your only storage pool is offline. Also do ***NOT*** store this script on a volume in the expansion unit.
+> **Warning** <br>
+> Do ***NOT*** span a storage pool between the NAS and Expansion Unit. After a DSM update the Expansion Unit will be unsupported until you run this script again, which will be hard to do if your only storage pool is offline. Also do ***NOT*** store this script on a volume in the expansion unit.
 
 <br>
 
@@ -60,21 +59,24 @@ I'm 99% certain this script will work for the following Synology NAS models:
 
 See <a href=images/how_to_download_generic.png/>How to download the script</a> for the easiest way to download the script.
 
-Do ***NOT*** save the script to a volumes in the expansion unit as the volume won't be available until after the script has run.
+> **Warning** <br>
+> Do ***NOT*** save the script to a volumes in the expansion unit as the volume won't be available until after the script has run.
 
 ## How to run the script
 
 ### Run the script via SSH
 
-**Note:** Replace /volume1/scripts/ with the path to where the script is located.
 Run the script then reboot the Synology:
 
     sudo -i /volume1/scripts/syno_enable_eunit.sh
 
+> **Note:** <br>
+> Replace /volume1/scripts/ with the path to where the script is located.
+
 **Options:**
 ```YAML
-  -c, --check      Check expansion unit status
-  -r, --restore    Restore backup to undo changes
+  -c, --check      Check expansion units status
+  -r, --restore    Restore from backups to undo changes
   -h, --help       Show this help message
   -v, --version    Show the script version
 ```
