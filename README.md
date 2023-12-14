@@ -12,10 +12,10 @@ This script will enable a choice of DX517, DX513, DX213, RX418, RX415 or RX410 o
 
 You can enable DX517, RX418 and a 3rd model of either DX513, DX213, RX415 or RX410.
 
-**Note:** If you later want to change the 3rd model you need to:
-1. Run the script with the --restore option.
-2. Run the script to enable your chosen expansion unit.
-3. Reboot.
+> **Note** <br> If you later want to change the 3rd model you need to:
+> 1. Run the script with the --restore option.
+> 2. Run the script to enable your chosen expansion unit.
+> 3. Reboot.
 
 If you have 2 of the same expansion unit model you only need to enable it once for both expansion units to be enabled in DSM.
 
@@ -70,7 +70,7 @@ Run the script then reboot the Synology:
 
     sudo -i /volume1/scripts/syno_enable_eunit.sh
 
-> **Note:** <br>
+> **Note** <br>
 > Replace /volume1/scripts/ with the path to where the script is located.
 
 **Options:**
