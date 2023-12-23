@@ -14,7 +14,7 @@ You can enable DX517, RX418 and a 3rd model of either DX513, DX213, RX415 or RX4
 
 > **Note** <br> If you later want to change the 3rd model you need to:
 > 1. Run the script with the --restore option.
-> 2. Run the script to enable your chosen expansion unit.
+> 2. Run the script again to enable your chosen expansion unit.
 > 3. Reboot.
 
 If you have 2 of the same expansion unit model you only need to enable it once for both expansion units to be enabled in DSM.
