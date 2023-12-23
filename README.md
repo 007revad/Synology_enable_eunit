@@ -6,24 +6,23 @@
 [![committers.top badge](https://user-badge.committers.top/australia/007revad.svg)](https://user-badge.committers.top/australia/007revad)
 
 ### Description
-Enable an unsupported Synology eSATA Expansion Unit models
+Enable unsupported Synology eSATA Expansion Unit models
 
 This script will enable a choice of DX517, DX513, DX213, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
 
 You can enable DX517, RX418 and a 3rd model of either DX513, DX213, RX415 or RX410.
 
-**Note:** If you later want to change the 3rd model you need to:
-1. Run the script with the --restore option.
-2. Run the script to enable your chosen expansion unit.
-3. Reboot.
+> **Note** <br> If you later want to change the 3rd model you need to:
+> 1. Run the script with the --restore option.
+> 2. Run the script again to enable your chosen expansion unit.
+> 3. Reboot.
 
 If you have 2 of the same expansion unit model you only need to enable it once for both expansion units to be enabled in DSM.
 
 <br>
 
-**Warning**
-    
-Do ***NOT*** span a storage pool between the NAS and Expansion Unit. After a DSM update the Expansion Unit will be unsupported until you run this script again, which will be hard to do if your only storage pool is offline. Also do ***NOT*** store this script on a volume in the expansion unit.
+> **Warning** <br>
+> Do ***NOT*** span a storage pool between the NAS and Expansion Unit. After a DSM update the Expansion Unit will be unsupported until you run this script again, which will be hard to do if your only storage pool is offline. Also do ***NOT*** store this script on a volume in the expansion unit.
 
 <br>
 
@@ -60,21 +59,26 @@ I'm 99% certain this script will work for the following Synology NAS models:
 
 See <a href=images/how_to_download_generic.png/>How to download the script</a> for the easiest way to download the script.
 
-Do ***NOT*** save the script to a volumes in the expansion unit as the volume won't be available until after the script has run.
+> **Warning** <br>
+> Do ***NOT*** save the script to a volumes in the expansion unit as the volume won't be available until after the script has run.
 
 ## How to run the script
 
 ### Run the script via SSH
 
-**Note:** Replace /volume1/scripts/ with the path to where the script is located.
 Run the script then reboot the Synology:
 
-    sudo -i /volume1/scripts/syno_enable_eunit.sh
+```bash
+sudo -i /volume1/scripts/syno_enable_eunit.sh
+```
+
+> **Note** <br>
+> Replace /volume1/scripts/ with the path to where the script is located.
 
 **Options:**
 ```YAML
-  -c, --check      Check expansion unit status
-  -r, --restore    Restore backup to undo changes
+  -c, --check      Check expansion units status
+  -r, --restore    Restore from backups to undo changes
   -h, --help       Show this help message
   -v, --version    Show the script version
 ```
