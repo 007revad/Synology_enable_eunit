@@ -6,7 +6,7 @@
 [![committers.top badge](https://user-badge.committers.top/australia/007revad.svg)](https://user-badge.committers.top/australia/007revad)
 
 ### Description
-Enable an unsupported Synology eSATA Expansion Unit models
+Enable unsupported Synology eSATA Expansion Unit models
 
 This script will enable a choice of DX517, DX513, DX213, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
 
