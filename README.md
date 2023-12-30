@@ -37,12 +37,12 @@ For example:
 
 I'm 99% certain this script will work for the following Synology NAS models:
 
-| Model | Works | Commment |
-|-------|-------|----------|
-| DS720+ | ??? | |
-| DS723+ | ??? | |
-| DS920+ | ??? | |
-| DS923+ | ??? | |
+| Model   | Works | Commment |
+|---------|-------|----------|
+| DS720+  | ??? | |
+| DS723+  | ??? | |
+| DS920+  | ??? | |
+| DS923+  | ??? | |
 | DS1520+ | ??? | |
 | DS1522+ | ??? | |
 | DS1621+ | ??? | |
@@ -79,6 +79,7 @@ sudo -i /volume1/scripts/syno_enable_eunit.sh
 ```YAML
   -c, --check      Check expansion units status
   -r, --restore    Restore from backups to undo changes
+  -e, --email      Disable colored text in output for scheduler emails.
   -h, --help       Show this help message
   -v, --version    Show the script version
 ```
