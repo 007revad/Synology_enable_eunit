@@ -1,2 +1,5 @@
+v1.0.2
+- Added DX510.
+
 v1.0.1
 - First release.
