@@ -8,9 +8,9 @@
 ### Description
 Enable unsupported Synology eSATA Expansion Unit models
 
-This script will enable a choice of DX517, DX513, DX213, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
+This script will enable a choice of DX517, DX513, DX213, DX510, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
 
-You can enable DX517, RX418 and a 3rd model of either DX513, DX213, RX415 or RX410.
+You can enable DX517, RX418 and a 3rd model of either DX513, DX213, DX510, RX415 or RX410.
 
 > **Note** <br> If you later want to change the 3rd model you need to:
 > 1. Run the script with the --restore option.
@@ -37,12 +37,12 @@ For example:
 
 I'm 99% certain this script will work for the following Synology NAS models:
 
-| Model | Works | Commment |
-|-------|-------|----------|
-| DS720+ | ??? | |
-| DS723+ | ??? | |
-| DS920+ | ??? | |
-| DS923+ | ??? | |
+| Model   | Works | Commment |
+|---------|-------|----------|
+| DS720+  | ??? | |
+| DS723+  | ??? | |
+| DS920+  | ??? | |
+| DS923+  | ??? | |
 | DS1520+ | ??? | |
 | DS1522+ | ??? | |
 | DS1621+ | ??? | |
@@ -77,10 +77,15 @@ sudo -i /volume1/scripts/syno_enable_eunit.sh
 
 **Options:**
 ```YAML
-  -c, --check      Check expansion units status
-  -r, --restore    Restore from backups to undo changes
-  -h, --help       Show this help message
-  -v, --version    Show the script version
+  -c, --check           Check expansion units status
+  -r, --restore         Restore from backups to undo changes
+  -e, --email           Disable colored text in output scheduler emails
+      --autoupdate=AGE  Auto update script (useful when script is scheduled)
+                        AGE is how many days old a release must be before
+                        auto-updating. AGE must be a number: 0 or greater
+  -h, --help            Show this help message
+  -v, --version         Show the script version
+
 ```
 
 ## What about DSM updates?

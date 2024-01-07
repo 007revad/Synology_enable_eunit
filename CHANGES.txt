@@ -1,2 +1,11 @@
+v1.0.3
+- Added DX510 support.
+- Added --autoupdate=AGE to auto update script (useful when script is scheduled).
+- Added -e, --email option to disable colored text in output scheduler emails.
+- Now adds entry to DSM system log if auto update succeeds or fails.
+- Now shows Storage Manager package version.
+- Now warns if script is located on an NVMe drive.
+- Bug fix for wrong filename when updating itself.
+
 v1.0.1
 - First release.

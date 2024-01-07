@@ -12,9 +12,10 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v1.0.1"
+scriptver="v1.0.3"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
+scriptname=syno_enable_eunit
 
 # Check BASH variable is bash
 if [ ! "$(basename "$BASH")" = bash ]; then
@@ -22,20 +23,6 @@ if [ ! "$(basename "$BASH")" = bash ]; then
     printf \\a
     exit 1
 fi
-
-#echo -e "bash version: $(bash --version | head -1 | cut -d' ' -f4)\n"  # debug
-
-# Shell Colors
-#Black='\e[0;30m'    # ${Black}
-#Red='\e[0;31m'      # ${Red}
-#Green='\e[0;32m'    # ${Green}
-Yellow='\e[0;33m'    # ${Yellow}
-#Blue='\e[0;34m'     # ${Blue}
-#Purple='\e[0;35m'   # ${Purple}
-Cyan='\e[0;36m'      # ${Cyan}
-#White='\e[0;37m'    # ${White}
-Error='\e[41m'       # ${Error}
-Off='\e[0m'          # ${Off}
 
 ding(){ 
     printf \\a
@@ -48,10 +35,14 @@ $script $scriptver - by 007revad
 Usage: $(basename "$0") [options]
 
 Options:
-  -c, --check      Check expansion unit status
-  -r, --restore    Restore backup to undo changes
-  -h, --help       Show this help message
-  -v, --version    Show the script version
+  -c, --check           Check expansion units status
+  -r, --restore         Restore from backups to undo changes
+  -e, --email           Disable colored text in output scheduler emails.
+      --autoupdate=AGE  Auto update script (useful when script is scheduled)
+                          AGE is how many days old a release must be before
+                          auto-updating. AGE must be a number: 0 or greater
+  -h, --help            Show this help message
+  -v, --version         Show the script version
 
 EOF
     exit 0
@@ -75,8 +66,8 @@ args=("$@")
 autoupdate=""
 
 # Check for flags with getopt
-if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -a \
-    -l check,restore,help,version,log,debug -- "$@")"; then
+if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -l \
+    check,restore,help,version,email,autoupdate:,log,debug -- "${args[@]}")"; then
     eval set -- "$options"
     while true; do
         case "${1,,}" in
@@ -99,6 +90,18 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -a \
             -r|--restore)       # Restore original settings
                 restore=yes
                 break
+                ;;
+            -e|--email)         # Disable colour text in task scheduler emails
+                color=no
+                ;;
+            --autoupdate)       # Auto update script
+                autoupdate=yes
+                if [[ $2 =~ ^[0-9]+$ ]]; then
+                    delay="$2"
+                    shift
+                else
+                    delay="0"
+                fi
                 ;;
             --)
                 shift
@@ -123,16 +126,29 @@ if [[ $debug == "yes" ]]; then
 fi
 
 
+# Shell Colors
+if [[ $color != "no" ]]; then
+    #Black='\e[0;30m'   # ${Black}
+    #Red='\e[0;31m'     # ${Red}
+    #Green='\e[0;32m'   # ${Green}
+    Yellow='\e[0;33m'   # ${Yellow}
+    #Blue='\e[0;34m'    # ${Blue}
+    #Purple='\e[0;35m'  # ${Purple}
+    Cyan='\e[0;36m'     # ${Cyan}
+    #White='\e[0;37m'   # ${White}
+    Error='\e[41m'      # ${Error}
+    Off='\e[0m'         # ${Off}
+else
+    echo ""  # For task scheduler email readability
+fi
+
+
 # Check script is running as root
 if [[ $( whoami ) != "root" ]]; then
     ding
     echo -e "${Error}ERROR${Off} This script must be run as sudo or root!"
     exit 1
 fi
-
-# Show script version
-#echo -e "$script $scriptver\ngithub.com/$repo\n"
-echo "$script $scriptver"
 
 # Get DSM major and minor versions
 #dsm=$(get_key_value /etc.defaults/VERSION majorversion)
@@ -146,7 +162,12 @@ echo "$script $scriptver"
 
 # Get NAS model
 model=$(cat /proc/sys/kernel/syno_hw_version)
-modelname="$model"
+#modelname="$model"
+
+
+# Show script version
+#echo -e "$script $scriptver\ngithub.com/$repo\n"
+echo "$script $scriptver"
 
 # Get DSM full version
 productversion=$(get_key_value /etc.defaults/VERSION productversion)
@@ -158,6 +179,13 @@ smallfixnumber=$(get_key_value /etc.defaults/VERSION smallfixnumber)
 if [[ $buildphase == GM ]]; then buildphase=""; fi
 if [[ $smallfixnumber -gt "0" ]]; then smallfix="-$smallfixnumber"; fi
 echo -e "$model DSM $productversion-$buildnumber$smallfix $buildphase\n"
+
+
+# Get StorageManager version
+storagemgrver=$(synopkg version StorageManager)
+# Show StorageManager version
+if [[ $storagemgrver ]]; then echo -e "StorageManager $storagemgrver\n"; fi
+
 
 # Show options used
 if [[ ${#args[@]} -gt "0" ]]; then
@@ -174,18 +202,37 @@ fi
 #------------------------------------------------------------------------------
 # Check latest release with GitHub API
 
-get_latest_release(){ 
-    # Curl timeout options:
-    # https://unix.stackexchange.com/questions/94604/does-curl-have-a-timeout
-    curl --silent -m 10 --connect-timeout 5 \
-        "https://api.github.com/repos/$1/releases/latest" |
-    grep '"tag_name":' |          # Get tag line
-    sed -E 's/.*"([^"]+)".*/\1/'  # Pluck JSON value
+syslog_set(){ 
+    if [[ ${1,,} == "info" ]] || [[ ${1,,} == "warn" ]] || [[ ${1,,} == "err" ]]; then
+        if [[ $autoupdate == "yes" ]]; then
+            # Add entry to Synology system log
+            synologset1 sys "$1" 0x11100000 "$2"
+        fi
+    fi
 }
 
-tag=$(get_latest_release "$repo")
+
+# Get latest release info
+# Curl timeout options:
+# https://unix.stackexchange.com/questions/94604/does-curl-have-a-timeout
+release=$(curl --silent -m 10 --connect-timeout 5 \
+    "https://api.github.com/repos/$repo/releases/latest")
+
+# Release version
+tag=$(echo "$release" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 shorttag="${tag:1}"
-#scriptpath=$(dirname -- "$0")
+
+# Release published date
+published=$(echo "$release" | grep '"published_at":' | sed -E 's/.*"([^"]+)".*/\1/')
+published="${published:0:10}"
+published=$(date -d "$published" '+%s')
+
+# Today's date
+now=$(date '+%s')
+
+# Days since release published
+age=$(((now - published)/(60*60*24)))
+
 
 # Get script location
 # https://stackoverflow.com/questions/59895/
@@ -198,12 +245,49 @@ while [ -L "$source" ]; do # Resolve $source until the file is no longer a symli
     [[ $source != /* ]] && source=$scriptpath/$source
 done
 scriptpath=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
-#echo "Script location: $scriptpath"  # debug
+scriptfile=$( basename -- "$source" )
+echo "Running from: ${scriptpath}/$scriptfile"
+
+# Warn if script located on M.2 drive
+scriptvol=$(echo "$scriptpath" | cut -d"/" -f2)
+vg=$(lvdisplay | grep /volume_"${scriptvol#volume}" | cut -d"/" -f3)
+md=$(pvdisplay | grep -B 1 -E '[ ]'"$vg" | grep /dev/ | cut -d"/" -f3)
+if cat /proc/mdstat | grep "$md" | grep nvme >/dev/null; then
+    echo -e "${Yellow}WARNING${Off} Don't store this script on an NVMe volume!"
+fi
+
+
+cleanup_tmp(){ 
+    cleanup_err=
+
+    # Delete downloaded .tar.gz file
+    if [[ -f "/tmp/$script-$shorttag.tar.gz" ]]; then
+        if ! rm "/tmp/$script-$shorttag.tar.gz"; then
+            echo -e "${Error}ERROR${Off} Failed to delete"\
+                "downloaded /tmp/$script-$shorttag.tar.gz!" >&2
+            cleanup_err=1
+        fi
+    fi
+
+    # Delete extracted tmp files
+    if [[ -d "/tmp/$script-$shorttag" ]]; then
+        if ! rm -r "/tmp/$script-$shorttag"; then
+            echo -e "${Error}ERROR${Off} Failed to delete"\
+                "downloaded /tmp/$script-$shorttag!" >&2
+            cleanup_err=1
+        fi
+    fi
+
+    # Add warning to DSM log
+    if [[ -z $cleanup_err ]]; then
+        syslog_set warn "$script update failed to delete tmp files"
+    fi
+}
 
 
 if ! printf "%s\n%s\n" "$tag" "$scriptver" |
-        sort --check=quiet --version-sort &> /dev/null ; then
-    echo -e "${Cyan}There is a newer version of this script available.${Off}"
+        sort --check=quiet --version-sort >/dev/null ; then
+    echo -e "\n${Cyan}There is a newer version of this script available.${Off}"
     echo -e "Current version: ${scriptver}\nLatest version:  $tag"
     if [[ -f $scriptpath/$script-$shorttag.tar.gz ]]; then
         # They have the latest version tar.gz downloaded but are using older version
@@ -214,82 +298,98 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
         echo "https://github.com/$repo/releases/latest"
         sleep 10
     else
-        echo -e "${Cyan}Do you want to download $tag now?${Off} [y/n]"
-        read -r -t 30 reply
+        if [[ $autoupdate == "yes" ]]; then
+            if [[ $age -gt "$delay" ]] || [[ $age -eq "$delay" ]]; then
+                echo "Downloading $tag"
+                reply=y
+            else
+                echo "Skipping as $tag is less than $delay days old."
+            fi
+        else
+            echo -e "${Cyan}Do you want to download $tag now?${Off} [y/n]"
+            read -r -t 30 reply
+        fi
+
         if [[ ${reply,,} == "y" ]]; then
+            # Delete previously downloaded .tar.gz file and extracted tmp files
+            cleanup_tmp
+
             if cd /tmp; then
                 url="https://github.com/$repo/archive/refs/tags/$tag.tar.gz"
-                if ! curl -LJO -m 30 --connect-timeout 5 "$url";
-                then
+                if ! curl -JLO -m 30 --connect-timeout 5 "$url"; then
                     echo -e "${Error}ERROR${Off} Failed to download"\
                         "$script-$shorttag.tar.gz!"
+                    syslog_set warn "$script $tag failed to download"
                 else
                     if [[ -f /tmp/$script-$shorttag.tar.gz ]]; then
                         # Extract tar file to /tmp/<script-name>
                         if ! tar -xf "/tmp/$script-$shorttag.tar.gz" -C "/tmp"; then
                             echo -e "${Error}ERROR${Off} Failed to"\
                                 "extract $script-$shorttag.tar.gz!"
+                            syslog_set warn "$script failed to extract $script-$shorttag.tar.gz!"
                         else
-                            # Copy new script sh files to script location
-                            if ! cp -p "/tmp/$script-$shorttag/"*.sh "$scriptpath"; then
+                            # Set permissions on sh files
+                            if ! chmod a+x "/tmp/$script-$shorttag/"*.sh ; then
+                                permerr=1
+                                echo -e "${Error}ERROR${Off} Failed to set executable permissions"
+                                syslog_set warn "$script failed to set permissions on $tag"
+                            fi
+
+                            # Copy new script sh file to script location
+                            if ! cp -p "/tmp/$script-$shorttag/${scriptname}.sh" "${scriptpath}/${scriptfile}";
+                            then
                                 copyerr=1
                                 echo -e "${Error}ERROR${Off} Failed to copy"\
                                     "$script-$shorttag .sh file(s) to:\n $scriptpath"
-                            else                   
-                                # Set permsissions on CHANGES.txt
-                                if ! chmod 744 "$scriptpath/"*.sh ; then
-                                    permerr=1
-                                    echo -e "${Error}ERROR${Off} Failed to set permissions on:"
-                                    echo "$scriptpath *.sh file(s)"
-                                fi
+                                syslog_set warn "$script failed to copy $tag to script location"
                             fi
 
-                            # Copy new CHANGES.txt file to script location
-                            if ! cp -p "/tmp/$script-$shorttag/CHANGES.txt" "$scriptpath"; then
-                                copyerr=1
-                                echo -e "${Error}ERROR${Off} Failed to copy"\
-                                    "$script-$shorttag/CHANGES.txt to:\n $scriptpath"
-                            else                   
-                                # Set permsissions on CHANGES.txt
-                                if ! chmod 744 "$scriptpath/CHANGES.txt"; then
+                            # Copy new CHANGES.txt file to script location (if script on a volume)
+                            if [[ $scriptpath =~ /volume* ]]; then
+                                # Set permissions on CHANGES.txt
+                                if ! chmod 664 "/tmp/$script-$shorttag/CHANGES.txt"; then
                                     permerr=1
                                     echo -e "${Error}ERROR${Off} Failed to set permissions on:"
                                     echo "$scriptpath/CHANGES.txt"
                                 fi
-                            fi
 
-                            # Delete downloaded .tar.gz file
-                            if ! rm "/tmp/$script-$shorttag.tar.gz"; then
-                                #delerr=1
-                                echo -e "${Error}ERROR${Off} Failed to delete"\
-                                    "downloaded /tmp/$script-$shorttag.tar.gz!"
+                                # Copy new CHANGES.txt file to script location
+                                if ! cp -p "/tmp/$script-$shorttag/CHANGES.txt"\
+                                    "${scriptpath}/${scriptfile%.*}_CHANGES.txt";
+                                then
+                                    copyerr=1
+                                    echo -e "${Error}ERROR${Off} Failed to copy"\
+                                        "$script-$shorttag/CHANGES.txt to:\n $scriptpath"
+                                else
+                                    changestxt=" and changes.txt"
+                                fi
                             fi
 
                             # Delete extracted tmp files
-                            if ! rm -r "/tmp/$script-$shorttag"; then
-                                #delerr=1
-                                echo -e "${Error}ERROR${Off} Failed to delete"\
-                                    "downloaded /tmp/$script-$shorttag!"
-                            fi
+                            cleanup_tmp
 
                             # Notify of success (if there were no errors)
                             if [[ $copyerr != 1 ]] && [[ $permerr != 1 ]]; then
-                                echo -e "\n$tag and changes.txt downloaded to:"\
-                                    "$scriptpath"
+                                echo -e "\n$tag ${scriptfile}$changestxt downloaded to: ${scriptpath}\n"
+                                syslog_set info "$script successfully updated to $tag"
 
                                 # Reload script
                                 printf -- '-%.0s' {1..79}; echo  # print 79 -
                                 exec "$0" "${args[@]}"
+                            else
+                                syslog_set warn "$script update to $tag had errors"
                             fi
                         fi
                     else
                         echo -e "${Error}ERROR${Off}"\
                             "/tmp/$script-$shorttag.tar.gz not found!"
-                        #ls /tmp | grep "$script"  # debug
+                        syslog_set warn "/tmp/$script-$shorttag.tar.gz not found"
                     fi
                 fi
+                cd "$scriptpath" || echo -e "${Error}ERROR${Off} Failed to cd to script location!"
             else
                 echo -e "${Error}ERROR${Off} Failed to cd to /tmp!"
+                syslog_set warn "$script update failed to cd to /tmp"
             fi
         fi
     fi
@@ -306,7 +406,6 @@ if [[ -f /etc.defaults/model.dtb ]]; then  # Is device tree model
     # If syno_hw_revision is r1 or r2 it's a real Synology,
     # and I need to edit model_rN.dtb instead of model.dtb
     if [[ $hwrevision =~ r[0-9] ]]; then
-        #echo "hwrevision: $hwrevision"  # debug
         hwrev="_$hwrevision"
     fi
 
@@ -314,11 +413,14 @@ if [[ -f /etc.defaults/model.dtb ]]; then  # Is device tree model
     dtb2_file="/etc/model${hwrev}.dtb"
     #dts_file="/etc.defaults/model${hwrev}.dts"
     dts_file="/tmp/model${hwrev}.dts"
+
+
 fi
 
 synoinfo="/etc.defaults/synoinfo.conf"
 synoinfo2="/etc/synoinfo.conf"
 scemd="/usr/syno/bin/scemd"
+
 
 rebootmsg(){ 
     # Ensure newly connected ebox is in /var/log/diskprediction log.
@@ -341,6 +443,7 @@ rebootmsg(){
     fi
 }
 
+
 #------------------------------------------------------------------------------
 # Restore changes from backups
 
@@ -348,11 +451,6 @@ compare_md5(){
     # $1 is file 1
     # $2 is file 2
     if [[ -f "$1" ]] && [[ -f "$2" ]]; then
-        #md5f1=$(md5sum -b "$1" | awk '{print $1}')  # debug
-        #md5f2=$(md5sum -b "$2" | awk '{print $1}')  # debug
-        #echo "$md5f1 - $1"                          # debug
-        #echo "$md5f2 - $2"                          # debug
-
         if [[ $(md5sum -b "$1" | awk '{print $1}') == $(md5sum -b "$2" | awk '{print $1}') ]];
         then
             #echo -e "same\n"  # debug
@@ -396,7 +494,7 @@ if [[ $restore == "yes" ]]; then
 
         # Restore scemd from backup
         if [[ -f ${scemd}.bak ]]; then
-            if compare_md5 ${scemd}.bak ${scemd}; then
+            if compare_md5 "${scemd}".bak "${scemd}"; then
                 echo -e "${Cyan}OK${Off} ${scemd}"
             else
                 if cp -p --force "${scemd}.bak" "${scemd}"; then
@@ -626,7 +724,6 @@ edit_synoinfo(){
         # support_ew_20_eunit="Synology-DX517,Synology-RX418"        
         setting=$(synogetkeyvalue "$synoinfo" support_ew_20_eunit)
         if [[ $setting != *"$1"* ]]; then
-            #backupdb "$synoinfo" long || exit 1  # debug
             backupdb "$synoinfo" || exit 1
             newsetting="${setting},Synology-${1}"
             if synosetkeyvalue "$synoinfo" support_ew_20_eunit "$newsetting"; then
@@ -673,21 +770,19 @@ edit_scemd(){
     # $1 is the file
     # $2 is the eunit model
     if [[ -f $1 ]] && [[ -n $2 ]]; then
-        #backupdb "$1" long || exit 1  # debug
         backupdb "$1" || exit 1
         if ! grep -q "$2" "$1"; then
             hexold="44 58 31 32 32 32"  # DX1222
             cp -p "$scemd" /tmp/scemd
 
             # Check if the file is okay for editing
-#            findbytes "$scemd" "$hexold"
             findbytes /tmp/scemd "$hexold"
 
             if [[ -n $poshex ]] && [[ -n $hexnew ]] && [[ -n $match ]]; then
+
                 # Replace bytes in file
                 #posrep=$(printf "%x\n" $((0x${poshex}+8)))
                 posrep=$(printf "%x\n" $((0x${poshex})))
-#                if ! printf %s "${posrep}: $hexnew" | xxd -r - "$1"; then
                 if ! printf %s "${posrep}: $hexnew" | xxd -r - /tmp/scemd; then
                     echo -e "${Error}ERROR${Off} Failed to enable $2 in scemd!" >&2
                     return
@@ -720,7 +815,7 @@ dts_ebox(){
     sed -i '/^};/d' "$2"
 
     # Append PCIe M.2 card node to dts file
-    if [[ $1 == DX517 ]] || [[ $1 == DX513 ]]; then
+    if [[ $1 == DX517 ]] || [[ $1 == DX513 ]] || [[ $1 == DX510 ]]; then
     cat >> "$2" <<EODX5bay
 
 	$1 {
@@ -909,7 +1004,6 @@ edit_modeldtb(){
         if [[ -x /usr/sbin/dtc ]]; then
 
             # Backup model.dtb
-            #backupdb "$dtb_file" long || exit 1  # debug
             backupdb "$dtb_file" || exit 1
 
             # Output model.dtb to model.dts
@@ -946,7 +1040,7 @@ edit_modeldtb(){
 #------------------------------------------------------------------------------
 # Select expansion unit to enable
 
-eunits=("DX517" "DX513" "DX213" "RX418" "RX415" "RX410" "Quit")
+eunits=("DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" "Quit")
 PS3="Select your Expansion Unit: "
 select choice in "${eunits[@]}"; do
     echo -e "You selected $choice \n"
@@ -971,6 +1065,14 @@ select choice in "${eunits[@]}"; do
             edit_synoinfo "$choice"
             #hexnew="44 58 32 31 33 00"
             hexnew="445832313300"
+            edit_scemd "$scemd" "$choice"
+            eboxs=("$choice") && edit_modeldtb
+            break
+        ;;
+        DX510)
+            edit_synoinfo "$choice"
+            #hexnew="44 58 35 31 30 00"
+            hexnew="445835313300"
             edit_scemd "$scemd" "$choice"
             eboxs=("$choice") && edit_modeldtb
             break
