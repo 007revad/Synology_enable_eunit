@@ -202,12 +202,8 @@ if [[ ${#args[@]} -gt "0" ]]; then
 fi
 
 # Check Synology has a expansion port
-if which dmidecode >/dev/null ; then
-    if ! dmidecode -t slot | grep "PCI Express x8" >/dev/null ; then
-        echo "${model}: No PCIe x8 slot found!"
-        exit 1
-    fi
-fi
+# How?
+
 
 #------------------------------------------------------------------------------
 # Check latest release with GitHub API

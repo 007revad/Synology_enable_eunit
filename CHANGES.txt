@@ -2,7 +2,6 @@ v1.0.5
 - Improved script updating itself.
 - Now checks script is running on a Synology NAS.
 - Now shows the Storage Manager packager version.
-- Now checks if NAS has a PCIe Express x8 slot (DSM 7.x only).
 - Now only tells you to reboot if model.dtb was edited.
 
 v1.0.3
