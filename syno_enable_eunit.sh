@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v1.0.3"
+scriptver="v1.0.5"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -23,6 +23,15 @@ if [ ! "$(basename "$BASH")" = bash ]; then
     printf \\a
     exit 1
 fi
+
+# Check script is running on a Synology NAS
+if ! uname -a | grep -i synology >/dev/null; then
+    echo "This script is NOT running on a Synology NAS!"
+    echo "Copy the script to a folder on the Synology"
+    echo "and run it from there."
+    exit 1
+fi
+
 
 ding(){ 
     printf \\a
@@ -37,7 +46,7 @@ Usage: $(basename "$0") [options]
 Options:
   -c, --check           Check expansion units status
   -r, --restore         Restore from backups to undo changes
-  -e, --email           Disable colored text in output scheduler emails.
+  -e, --email           Disable colored text in output scheduler emails
       --autoupdate=AGE  Auto update script (useful when script is scheduled)
                           AGE is how many days old a release must be before
                           auto-updating. AGE must be a number: 0 or greater
@@ -121,7 +130,7 @@ fi
 
 
 if [[ $debug == "yes" ]]; then
-    # set -x
+    set -x
     export PS4='`[[ $? == 0 ]] || echo "\e[1;31;40m($?)\e[m\n "`:.$LINENO:'
 fi
 
@@ -193,11 +202,12 @@ if [[ ${#args[@]} -gt "0" ]]; then
 fi
 
 # Check Synology has a expansion port
-#if ! dmidecode -t slot | grep "PCI Express x8" >/dev/null ; then
-#    echo "${model}: No PCIe x8 slot found!"
-#    exit 1
-#fi
-
+if which dmidecode >/dev/null ; then
+    if ! dmidecode -t slot | grep "PCI Express x8" >/dev/null ; then
+        echo "${model}: No PCIe x8 slot found!"
+        exit 1
+    fi
+fi
 
 #------------------------------------------------------------------------------
 # Check latest release with GitHub API
@@ -240,7 +250,7 @@ source=${BASH_SOURCE[0]}
 while [ -L "$source" ]; do # Resolve $source until the file is no longer a symlink
     scriptpath=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
     source=$(readlink "$source")
-    # If $source was a relative symlink, we need to resolve it 
+    # If $source was a relative symlink, we need to resolve it
     # relative to the path where the symlink file was located
     [[ $source != /* ]] && source=$scriptpath/$source
 done
@@ -289,13 +299,14 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
         sort --check=quiet --version-sort >/dev/null ; then
     echo -e "\n${Cyan}There is a newer version of this script available.${Off}"
     echo -e "Current version: ${scriptver}\nLatest version:  $tag"
-    if [[ -f $scriptpath/$script-$shorttag.tar.gz ]]; then
+    scriptdl="$scriptpath/$script-$shorttag"
+    if [[ -f ${scriptdl}.tar.gz ]] || [[ -f ${scriptdl}.zip ]]; then
         # They have the latest version tar.gz downloaded but are using older version
-        echo "https://github.com/$repo/releases/latest"
+        echo "You have the latest version downloaded but are using an older version"
         sleep 10
-    elif [[ -d $scriptpath/$script-$shorttag ]]; then
+    elif [[ -d $scriptdl ]]; then
         # They have the latest version extracted but are using older version
-        echo "https://github.com/$repo/releases/latest"
+        echo "You have the latest version extracted but are using an older version"
         sleep 10
     else
         if [[ $autoupdate == "yes" ]]; then
@@ -328,7 +339,7 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
                                 "extract $script-$shorttag.tar.gz!"
                             syslog_set warn "$script failed to extract $script-$shorttag.tar.gz!"
                         else
-                            # Set permissions on sh files
+                            # Set script sh files as executable
                             if ! chmod a+x "/tmp/$script-$shorttag/"*.sh ; then
                                 permerr=1
                                 echo -e "${Error}ERROR${Off} Failed to set executable permissions"
@@ -340,7 +351,7 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
                             then
                                 copyerr=1
                                 echo -e "${Error}ERROR${Off} Failed to copy"\
-                                    "$script-$shorttag .sh file(s) to:\n $scriptpath"
+                                    "$script-$shorttag sh file(s) to:\n $scriptpath/${scriptfile}"
                                 syslog_set warn "$script failed to copy $tag to script location"
                             fi
 
@@ -355,9 +366,9 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
 
                                 # Copy new CHANGES.txt file to script location
                                 if ! cp -p "/tmp/$script-$shorttag/CHANGES.txt"\
-                                    "${scriptpath}/${scriptfile%.*}_CHANGES.txt";
+                                    "${scriptpath}/${scriptname}_CHANGES.txt";
                                 then
-                                    copyerr=1
+                                    if [[ $autoupdate != "yes" ]]; then copyerr=1; fi
                                     echo -e "${Error}ERROR${Off} Failed to copy"\
                                         "$script-$shorttag/CHANGES.txt to:\n $scriptpath"
                                 else
@@ -365,7 +376,7 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
                                 fi
                             fi
 
-                            # Delete extracted tmp files
+                            # Delete downloaded tmp files
                             cleanup_tmp
 
                             # Notify of success (if there were no errors)
@@ -413,14 +424,11 @@ if [[ -f /etc.defaults/model.dtb ]]; then  # Is device tree model
     dtb2_file="/etc/model${hwrev}.dtb"
     #dts_file="/etc.defaults/model${hwrev}.dts"
     dts_file="/tmp/model${hwrev}.dts"
-
-
 fi
 
 synoinfo="/etc.defaults/synoinfo.conf"
 synoinfo2="/etc/synoinfo.conf"
 scemd="/usr/syno/bin/scemd"
-
 
 rebootmsg(){ 
     # Ensure newly connected ebox is in /var/log/diskprediction log.
@@ -497,12 +505,14 @@ if [[ $restore == "yes" ]]; then
             if compare_md5 "${scemd}".bak "${scemd}"; then
                 echo -e "${Cyan}OK${Off} ${scemd}"
             else
+                systemct stop scemd.service                         # testing #####################
                 if cp -p --force "${scemd}.bak" "${scemd}"; then
                     echo -e "Restored ${scemd}"
                 else
                     restoreerr=$((restoreerr+1))
                     echo -e "${Error}ERROR${Off} Failed to restore ${scemd}!\n"
                 fi
+                systemct start scemd.service                        # testing #####################
             fi
         else
             restoreerr=$((restoreerr+1))
@@ -779,14 +789,18 @@ edit_scemd(){
             findbytes /tmp/scemd "$hexold"
 
             if [[ -n $poshex ]] && [[ -n $hexnew ]] && [[ -n $match ]]; then
+                systemct stop scemd.service
 
                 # Replace bytes in file
                 #posrep=$(printf "%x\n" $((0x${poshex}+8)))
                 posrep=$(printf "%x\n" $((0x${poshex})))
                 if ! printf %s "${posrep}: $hexnew" | xxd -r - /tmp/scemd; then
                     echo -e "${Error}ERROR${Off} Failed to enable $2 in scemd!" >&2
+                    systemct start scemd.service
                     return
                 fi
+                systemct start scemd.service
+
                 if cp -p /tmp/scemd "$scemd"; then
                     rm /tmp/scemd
                 fi
@@ -794,7 +808,7 @@ edit_scemd(){
                 # Check we enabled eunit in scemd
                 if grep -q "$2" "$1"; then
                     echo -e "Enabled ${Yellow}$2${Off} in ${Cyan}scemd${Off}" >&2
-                    reboot=yes
+                    #reboot=yes  # testing without reboot ###############################
                 else
                     echo -e "${Error}ERROR${Off} Failed to enable $2 in scemd!" >&2
                 fi
@@ -1004,6 +1018,7 @@ edit_modeldtb(){
         if [[ -x /usr/sbin/dtc ]]; then
 
             # Backup model.dtb
+            #backupdb "$dtb_file" long || exit 1  # debug
             backupdb "$dtb_file" || exit 1
 
             # Output model.dtb to model.dts
