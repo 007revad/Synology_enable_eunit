@@ -57,7 +57,7 @@ I'm 99% certain this script will work for the following Synology NAS models:
 
 ## Download the script
 
-1. Download the latest version _Source code (zip)_ from https://github.com/007revad/Synology_Cleanup_Coredumps/releases
+1. Download the latest version _Source code (zip)_ from https://github.com/007revad/Synology_enable_eunit/releases
 2. Save the download zip file to a folder on the Synology.
 3. Unzip the zip file.
 
