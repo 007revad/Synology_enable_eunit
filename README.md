@@ -57,7 +57,9 @@ I'm 99% certain this script will work for the following Synology NAS models:
 
 ## Download the script
 
-See <a href=images/how_to_download_generic.png/>How to download the script</a> for the easiest way to download the script.
+1. Download the latest version _Source code (zip)_ from https://github.com/007revad/Synology_enable_eunit/releases
+2. Save the download zip file to a folder on the Synology.
+3. Unzip the zip file.
 
 > **Warning** <br>
 > Do ***NOT*** save the script to a volumes in the expansion unit as the volume won't be available until after the script has run.
