@@ -73,7 +73,7 @@ I'm 99% certain this script will work for the following Synology NAS models:
 Run the script then reboot the Synology:
 
 ```bash
-sudo -i /volume1/scripts/syno_enable_eunit.sh
+sudo -s /volume1/scripts/syno_enable_eunit.sh
 ```
 
 > **Note** <br>
