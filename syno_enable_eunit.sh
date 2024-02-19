@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v1.0.7"
+scriptver="v1.0.8"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -160,8 +160,8 @@ if [[ $( whoami ) != "root" ]]; then
 fi
 
 # Get DSM major and minor versions
-#dsm=$(get_key_value /etc.defaults/VERSION majorversion)
-#dsminor=$(get_key_value /etc.defaults/VERSION minorversion)
+#dsm=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION majorversion)
+#dsminor=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION minorversion)
 #if [[ $dsm -gt "6" ]] && [[ $dsminor -gt "1" ]]; then
 #    dsm72="yes"
 #fi
@@ -179,10 +179,10 @@ model=$(cat /proc/sys/kernel/syno_hw_version)
 echo "$script $scriptver"
 
 # Get DSM full version
-productversion=$(get_key_value /etc.defaults/VERSION productversion)
-buildphase=$(get_key_value /etc.defaults/VERSION buildphase)
-buildnumber=$(get_key_value /etc.defaults/VERSION buildnumber)
-smallfixnumber=$(get_key_value /etc.defaults/VERSION smallfixnumber)
+productversion=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION productversion)
+buildphase=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION buildphase)
+buildnumber=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION buildnumber)
+smallfixnumber=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION smallfixnumber)
 
 # Show DSM full version and model
 if [[ $buildphase == GM ]]; then buildphase=""; fi
@@ -191,7 +191,7 @@ echo -e "$model DSM $productversion-$buildnumber$smallfix $buildphase\n"
 
 
 # Get StorageManager version
-storagemgrver=$(synopkg version StorageManager)
+storagemgrver=$(/usr/syno/bin/synopkg version StorageManager)
 # Show StorageManager version
 if [[ $storagemgrver ]]; then echo -e "StorageManager $storagemgrver\n"; fi
 
@@ -212,7 +212,7 @@ syslog_set(){
     if [[ ${1,,} == "info" ]] || [[ ${1,,} == "warn" ]] || [[ ${1,,} == "err" ]]; then
         if [[ $autoupdate == "yes" ]]; then
             # Add entry to Synology system log
-            synologset1 sys "$1" 0x11100000 "$2"
+            /usr/syno/bin/synologset1 sys "$1" 0x11100000 "$2"
         fi
     fi
 }
@@ -429,7 +429,7 @@ scemd="/usr/syno/bin/scemd"
 rebootmsg(){ 
     # Ensure newly connected ebox is in /var/log/diskprediction log.
     # Otherwise the new /var/log/diskprediction log is only created a midnight.
-    syno_disk_data_collector record
+    /usr/syno/bin/syno_disk_data_collector record
 
     # Reboot prompt
     echo -e "\n${Cyan}The Synology needs to restart.${Off}"
@@ -478,13 +478,13 @@ if [[ $restore == "yes" ]]; then
         # Restore synoinfo.conf from backup
         # /usr/syno/etc.defaults/synoinfo.conf
         if [[ -f ${synoinfo}.bak ]]; then
-            setting="$(synogetkeyvalue "${synoinfo}.bak" support_ew_20_eunit)"
-            setting2="$(synogetkeyvalue "${synoinfo}" support_ew_20_eunit)"
+            setting="$(/usr/syno/bin/synogetkeyvalue "${synoinfo}.bak" support_ew_20_eunit)"
+            setting2="$(/usr/syno/bin/synogetkeyvalue "${synoinfo}" support_ew_20_eunit)"
             if [[ $setting == "$setting2" ]]; then
                 echo -e "${Cyan}OK${Off} ${synoinfo}"
             else
-                if synosetkeyvalue "$synoinfo" support_ew_20_eunit "$setting"; then
-                    synosetkeyvalue "$synoinfo2" support_ew_20_eunit "$setting"
+                if /usr/syno/bin/synosetkeyvalue "$synoinfo" support_ew_20_eunit "$setting"; then
+                    /usr/syno/bin/synosetkeyvalue "$synoinfo2" support_ew_20_eunit "$setting"
                     echo -e "Restored ${synoinfo}"
                 else
                     restoreerr=$((restoreerr+1))
@@ -565,7 +565,7 @@ fi
 check_key_value(){ 
     # $1 is path/file
     # $2 is key
-    setting="$(get_key_value "$1" "$2")"
+    setting="$(/usr/syno/bin/synogetkeyvalue "$1" "$2")"
     if [[ -f $1 ]]; then
         if [[ -n $2 ]]; then
             echo -e "${Yellow}$2${Off} = $setting" >&2
@@ -582,7 +582,7 @@ check_section_key_value(){
     # $2 is section
     # $3 is key
     # $4 is description
-    setting="$(get_section_key_value "$1" "$2" "$3")"
+    setting="$(/usr/syno/bin/get_section_key_value "$1" "$2" "$3")"
     if [[ -f $1 ]]; then
         if [[ -n $2 ]]; then
             if [[ -n $3 ]]; then
@@ -635,7 +635,7 @@ check_scemd(){
 
 if [[ $check == "yes" ]]; then
     # /etc.defaults/synoinfo.conf
-    setting=$(synogetkeyvalue "$synoinfo" support_ew_20_eunit)
+    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
     eunit1=$(echo -n "$setting" | cut -d"," -f1)
     eunit2=$(echo -n "$setting" | cut -d"," -f2)
     eunit3=$(echo -n "$setting" | cut -d"," -f3)
