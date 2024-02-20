@@ -49,7 +49,7 @@ I'm 99% certain this script will work for the following Synology NAS models:
 | DS1821+ | ??? | |
 | DS1823xs+ | ??? | |
 | RS822+, RS822RP+ | ??? | |
-| RS1221+, RS1221RP+ | ??? | |
+| RS1221+, RS1221RP+ | yes | DX517 |
 
 - The DiskStation models above already have DX517 enabled, and RX418 partially enabled.
 - The RackStation models above already have RX418 enabled, and DX517 partially enabled.
