@@ -37,19 +37,19 @@ For example:
 
 I'm 99% certain this script will work for the following Synology NAS models:
 
-| Model   | Works | Commment |
+| Model   | Works | With     |
 |---------|-------|----------|
-| DS720+  | ??? | |
-| DS723+  | ??? | |
-| DS920+  | ??? | |
-| DS923+  | ??? | |
-| DS1520+ | ??? | |
-| DS1522+ | ??? | |
-| DS1621+ | ??? | |
-| DS1821+ | ??? | |
 | DS1823xs+ | ??? | |
-| RS822+, RS822RP+ | ??? | |
+| DS1821+ | ??? | |
+| DS1621+ | ??? | |
+| DS1522+ | ??? | |
+| DS1520+ | ??? | |
+| DS923+  | ??? | |
+| DS920+  | ??? | |
+| DS723+  | ??? | |
+| DS720+  | ??? | |
 | RS1221+, RS1221RP+ | yes | DX517 |
+| RS822+, RS822RP+ | ??? | |
 
 - The DiskStation models above already have DX517 enabled, and RX418 partially enabled.
 - The RackStation models above already have RX418 enabled, and DX517 partially enabled.
