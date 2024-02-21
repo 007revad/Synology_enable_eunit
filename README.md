@@ -39,17 +39,17 @@ I'm 99% certain this script will work for the following Synology NAS models:
 
 | Model   | Works | Confirmed |
 |---------|-------|-----------|
-| DS1823xs+ | ? | |
-| DS1821+ | ? | |
-| DS1621+ | ? | |
-| DS1522+ | ? | |
+| DS1823xs+ | yes | |
+| DS1821+ | yes | |
+| DS1621+ | yes | |
+| DS1522+ | yes | |
 | DS1520+ | yes | |
-| DS923+  | ? | |
+| DS923+  | yes | |
 | DS920+  | yes | |
-| DS723+  | ? | |
+| DS723+  | yes | |
 | DS720+  | yes | DX513, DX213 |
 | RS1221+, RS1221RP+ | yes | DX517 |
-| RS822+, RS822RP+ | ??? | |
+| RS822+, RS822RP+ | yes | |
 
 - The DiskStation models above already have DX517 enabled, and RX418 partially enabled.
 - The RackStation models above already have RX418 enabled, and DX517 partially enabled.
