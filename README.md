@@ -37,18 +37,17 @@ For example:
 
 I'm 99% certain this script will work for the following Synology NAS models:
 
-| Model   | Works | With     |
-|---------|-------|----------|
-| DS1823xs+ | ??? | |
-| DS1821+ | ??? | |
-| DS1621+ | ??? | |
-| DS1522+ | ??? | |
-| DS1520+ | ??? | |
-| DS923+  | ??? | |
-| DS920+  | ??? | |
-| DS723+  | ??? | |
-| DS720+  | yes | DX513 |
-| DS720+  | yes | DX213 |
+| Model   | Works | Confirmed |
+|---------|-------|-----------|
+| DS1823xs+ | ? | |
+| DS1821+ | ? | |
+| DS1621+ | ? | |
+| DS1522+ | ? | |
+| DS1520+ | yes | |
+| DS923+  | ? | |
+| DS920+  | yes | |
+| DS723+  | ? | |
+| DS720+  | yes | DX513, DX213 |
 | RS1221+, RS1221RP+ | yes | DX517 |
 | RS822+, RS822RP+ | ??? | |
 
