@@ -47,7 +47,8 @@ I'm 99% certain this script will work for the following Synology NAS models:
 | DS923+  | ??? | |
 | DS920+  | ??? | |
 | DS723+  | ??? | |
-| DS720+  | ??? | |
+| DS720+  | yes | DX513 |
+| DS720+  | yes | DX213 |
 | RS1221+, RS1221RP+ | yes | DX517 |
 | RS822+, RS822RP+ | ??? | |
 
