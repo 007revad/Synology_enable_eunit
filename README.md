@@ -30,7 +30,7 @@ For example:
 
 ## Supported Models
 
-I'm 99% certain this script will work for the following Synology NAS models:
+This script will work for the following Synology NAS models:
 
 | Model   | Works | Confirmed |
 |---------|-------|-----------|
