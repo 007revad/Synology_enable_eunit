@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v1.0.8"
+scriptver="v2.0.10"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -252,7 +252,7 @@ while [ -L "$source" ]; do # Resolve $source until the file is no longer a symli
 done
 scriptpath=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
 scriptfile=$( basename -- "$source" )
-echo "Running from: ${scriptpath}/$scriptfile"
+echo -e "Running from: ${scriptpath}/$scriptfile\n"
 
 # Warn if script located on M.2 drive
 scriptvol=$(echo "$scriptpath" | cut -d"/" -f2)
@@ -404,6 +404,24 @@ fi
 
 
 #------------------------------------------------------------------------------
+# Show connected expansion units
+
+if which syno_slot_mapping >/dev/null; then
+    #found_eunits=($(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}'))
+    read -r -a found_eunits <<< "$(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}')"
+    echo "Connected Expansion Units:"
+    if [[ ${#found_eunits[@]} -gt "0" ]]; then
+        for e in "${found_eunits[@]}"; do
+            echo -e "${Cyan}$e${Off}"
+        done
+    else
+        echo -e "${Cyan}None${Off}"
+    fi
+    echo ""
+fi
+
+
+#------------------------------------------------------------------------------
 # Set file variables
 
 if [[ -f /etc.defaults/model.dtb ]]; then  # Is device tree model
@@ -436,7 +454,10 @@ rebootmsg(){
     echo -e "Type ${Cyan}yes${Off} to reboot now."
     echo -e "Type anything else to quit (if you will restart it yourself)."
     read -r -t 10 answer
-    if [[ ${answer,,} != "yes" ]]; then exit; fi
+    if [[ ${answer,,} != "yes" ]]; then
+        echo ""
+        exit
+    fi
 
 #    # Reboot in the background so user can see DSM's "going down" message
 #    reboot &
@@ -457,22 +478,18 @@ compare_md5(){
     if [[ -f "$1" ]] && [[ -f "$2" ]]; then
         if [[ $(md5sum -b "$1" | awk '{print $1}') == $(md5sum -b "$2" | awk '{print $1}') ]];
         then
-            #echo -e "same\n"  # debug
             return 0
         else
-            #echo -e "different\n"  # debug
             return 1
         fi
     else
-        #echo -e "error\n"  # debug
         restoreerr=$((restoreerr+1))
         return 2
     fi
 }
 
-restoreerr="0"
-if [[ $restore == "yes" ]]; then
-    echo ""
+restore_orig(){ 
+    restoreerr="0"
     if [[ -f ${dtb_file}.bak ]] || [[ -f ${synoinfo}.bak ]] || [[ -f ${scemd}.bak ]] ; 
     then
         # Restore synoinfo.conf from backup
@@ -501,18 +518,18 @@ if [[ $restore == "yes" ]]; then
             if compare_md5 "${scemd}".bak "${scemd}"; then
                 echo -e "${Cyan}OK${Off} ${scemd}"
             else
-                systemct stop scemd.service                         # testing #####################
+                /usr/bin/systemctl stop scemd.service
                 if cp -p --force "${scemd}.bak" "${scemd}"; then
                     echo -e "Restored ${scemd}"
                 else
                     restoreerr=$((restoreerr+1))
                     echo -e "${Error}ERROR${Off} Failed to restore ${scemd}!\n"
                 fi
-                systemct start scemd.service                        # testing #####################
+                /usr/bin/systemctl start scemd.service
             fi
-        else
-            restoreerr=$((restoreerr+1))
-            echo -e "${Error}ERROR${Off} No backup to restore ${scemd} from!\n"
+        #else
+        #    restoreerr=$((restoreerr+1))
+        #    echo -e "${Error}ERROR${Off} No backup to restore ${scemd} from!\n"
         fi
 
         # Restore model.dtb from backup
@@ -523,6 +540,7 @@ if [[ $restore == "yes" ]]; then
             else
                 if cp -p --force "${dtb_file}.bak" "${dtb_file}"; then
                     echo -e "Restored ${dtb_file}"
+                    reboot=yes
                 else
                     restoreerr=$((restoreerr+1))
                     echo -e "${Error}ERROR${Off} Failed to restore ${dtb_file}!\n"
@@ -555,6 +573,12 @@ if [[ $restore == "yes" ]]; then
     else
         echo -e "Nothing to restore."
     fi
+}
+
+if [[ $restore == "yes" ]]; then
+    echo ""
+    restore_orig
+    echo ""
     exit
 fi
 
@@ -587,9 +611,9 @@ check_section_key_value(){
         if [[ -n $2 ]]; then
             if [[ -n $3 ]]; then
                 if [[ $setting == "yes" ]]; then
-                    echo -e "${Yellow}$4${Off} is enabled for ${Cyan}$3${Off}" >&2
+                    echo -e "${Cyan}$4${Off} is enabled for ${Yellow}$3${Off}" >&2
                 else
-                    echo -e "$4 is ${Cyan}not${Off} enabled for $3" >&2
+                    echo -e "${Cyan}$4${Off} is ${Cyan}not${Off} enabled for ${Yellow}$3${Off}" >&2
                 fi
             else
                 echo -e "Key name not specified!" >&2
@@ -606,87 +630,80 @@ check_modeldtb(){
     # $1 is DX517 or RX418 etc
     if [[ -f "${dtb_file}" ]]; then
         if grep --text "$1" "${dtb_file}" >/dev/null; then
-            echo -e "${Yellow}$1${Off} is enabled in ${Cyan}${dtb_file}${Off}" >& 2
+            echo -e "${Cyan}$1${Off} is enabled in ${Yellow}${dtb_file}${Off}" >& 2
         else
-            echo -e "$1 is ${Cyan}not${Off} enabled in ${Cyan}${dtb_file}${Off}" >& 2
+            echo -e "${Cyan}$1${Off} is ${Cyan}not${Off} enabled in ${Yellow}${dtb_file}${Off}" >& 2
         fi
-    #else
-    #    echo -e "No ${dtb2_file}" >& 2
     fi
     if [[ -f "${dtb2_file}" ]]; then
         if grep --text "$1" "${dtb2_file}" >/dev/null; then
-            echo -e "${Yellow}$1${Off} is enabled in ${Cyan}${dtb2_file}${Off}" >& 2
+            echo -e "${Cyan}$1${Off} is enabled in ${Yellow}${dtb2_file}${Off}" >& 2
         else
-            echo -e "$1 is ${Cyan}not${Off} enabled in ${Cyan}${dtb2_file}${Off}" >& 2
+            echo -e "${Cyan}$1${Off} is ${Cyan}not${Off} enabled in ${Yellow}${dtb2_file}${Off}" >& 2
         fi
-    #else
-    #    echo -e "No ${dtb2_file}" >& 2
     fi
 }
 
-check_scemd(){ 
-    # $1 is DX517 or RX418 etc
-    if grep --text "$1" "${scemd}" >/dev/null; then
-        echo -e "${Yellow}${1#Synology-}${Off} is enabled in ${Cyan}${scemd}${Off}" >& 2
-    else
-        echo -e "${1#Synology-}${Off} is ${Cyan}not${Off} enabled in ${Cyan}${scemd}${Off}" >& 2
-    fi
+check_enabled(){ 
+    # /etc.defaults/synoinfo.conf
+    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
+    IFS=',' read -r -a eunits_array <<< "$setting"
+    for e in "${eunits_array[@]}"; do
+        echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo}${Off}"
+    done
+    echo ""
+
+    # /etc/synoinfo.conf
+    setting2=$(/usr/syno/bin/synogetkeyvalue "$synoinfo2" support_ew_20_eunit)
+    IFS=',' read -r -a eunits_array2 <<< "$setting2"
+    for e in "${eunits_array2[@]}"; do
+#        if [[ ${eunits_array[*]} =~ "$e" ]]; then
+        if [[ ${eunits_array[*]} =~ $e ]]; then
+            echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo2}${Off}"
+        fi
+    done
+    echo ""
+
+    for e in "${eunits_array[@]}"; do
+        check_modeldtb "${e#Synology-}"
+    done
+    echo ""
 }
 
 if [[ $check == "yes" ]]; then
-    # /etc.defaults/synoinfo.conf
-    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
-    eunit1=$(echo -n "$setting" | cut -d"," -f1)
-    eunit2=$(echo -n "$setting" | cut -d"," -f2)
-    eunit3=$(echo -n "$setting" | cut -d"," -f3)
-    #echo "/etc.defaults/synoinfo.conf support_ew_20_eunit = $setting"  # debug
     echo ""
-    if [[ -n "$eunit1" ]]; then
-        echo -e "${Yellow}${eunit1#Synology-}${Off} is enabled in ${Cyan}${synoinfo}${Off}"
-    fi
-    if [[ -n "$eunit2" ]]; then
-        echo -e "${Yellow}${eunit2#Synology-}${Off} is enabled in ${Cyan}${synoinfo}${Off}"
-    fi
-    if [[ -n "$eunit3" ]]; then
-        echo -e "${Yellow}${eunit3#Synology-}${Off} is enabled in ${Cyan}${synoinfo}${Off}"
-    fi
-
-    # /etc/synoinfo.conf
-    setting=$(synogetkeyvalue "$synoinfo2" support_ew_20_eunit)
-    eunit1b=$(echo -n "$setting" | cut -d"," -f1)
-    eunit2b=$(echo -n "$setting" | cut -d"," -f2)
-    eunit3b=$(echo -n "$setting" | cut -d"," -f3)
-    #echo "/etc/synoinfo.conf support_ew_20_eunit = $setting"  # debug
-    echo ""
-    if [[ -n "$eunit1b" ]]; then
-        echo -e "${Yellow}${eunit1b#Synology-}${Off} is enabled in ${Cyan}${synoinfo2}${Off}"
-    fi
-    if [[ -n "$eunit2b" ]]; then
-        echo -e "${Yellow}${eunit2b#Synology-}${Off} is enabled in ${Cyan}${synoinfo2}${Off}"
-    fi
-    if [[ -n "$eunit3b" ]]; then
-        echo -e "${Yellow}${eunit3b#Synology-}${Off} is enabled in ${Cyan}${synoinfo2}${Off}"
-    fi
-
-    # /etc.defaults/model.dtb and /etc/model.dtb
-    echo ""
-    check_modeldtb "${eunit1#Synology-}"
-    check_modeldtb "${eunit2#Synology-}"
-    if [[ -n "$eunit3" ]]; then
-        check_modeldtb "${eunit3#Synology-}"
-    fi
-
-    # /usr/syno/bin/scemd
-    echo ""
-    check_scemd "$eunit1"
-    check_scemd "$eunit2"
-    if [[ -n "$eunit3" ]]; then
-        check_scemd "$eunit3"
-    fi
-
-    echo ""
+    check_enabled
     exit
 fi
+
+
+show_enabled(){ 
+    # /etc.defaults/synoinfo.conf
+    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
+    IFS=',' read -r -a eunits_array <<< "$setting"
+    # /etc/synoinfo.conf
+    setting2=$(/usr/syno/bin/synogetkeyvalue "$synoinfo2" support_ew_20_eunit)
+    IFS=',' read -r -a eunits_array2 <<< "$setting2"
+    for e in "${eunits_array[@]}"; do
+        count="1"
+#        if [[ ${eunits_array2[*]} =~ "$e" ]]; then
+        if [[ ${eunits_array2[*]} =~ $e ]]; then
+            count=$((count +1))
+        fi
+        if grep --text "${e#Synology-}" "${dtb_file}" >/dev/null; then
+            count=$((count +1))
+        fi
+        if grep --text "${e#Synology-}" "${dtb2_file}" >/dev/null; then
+            count=$((count +1))
+        fi
+        if [[ $count == "4" ]]; then
+            echo -e "${Cyan}${e#Synology-}${Off} is enabled"
+        else
+            echo -e "${Cyan}${e#Synology-}${Off} ${Yellow}partially${Off} enabled"
+        fi
+    done
+    echo ""
+}
 
 
 #------------------------------------------------------------------------------
@@ -730,89 +747,17 @@ edit_synoinfo(){
         # support_ew_20_eunit="Synology-DX517,Synology-RX418"        
         setting=$(synogetkeyvalue "$synoinfo" support_ew_20_eunit)
         if [[ $setting != *"$1"* ]]; then
+            #backupdb "$synoinfo" long || exit 1  # debug
             backupdb "$synoinfo" || exit 1
             newsetting="${setting},Synology-${1}"
             if synosetkeyvalue "$synoinfo" support_ew_20_eunit "$newsetting"; then
                 synosetkeyvalue "$synoinfo2" support_ew_20_eunit "$newsetting"
-                echo -e "Enabled ${Yellow}$1${Off} in ${Cyan}synoinfo.conf${Off}" >&2
-                #reboot=yes
+                echo -e "Enabled ${Cyan}$1${Off} in ${Yellow}synoinfo.conf${Off}" >&2
             else
                 echo -e "${Error}ERROR 9${Off} Failed to enable $1 in synoinfo.conf!" >&2
             fi
         else
-            echo -e "${Yellow}$1${Off} already enabled in ${Cyan}synoinfo.conf${Off}" >&2
-        fi
-    fi
-}
-
-findbytes(){ 
-    # $1 is the file
-    # $2 is the hex string
-    # Get decimal position of matching hex string
-    match=$(od -v -t x1 "$1" |
-    sed 's/[^ ]* *//' |
-    tr '\012' ' ' |
-    grep -b -i -o "$2" |
-    cut -d ':' -f 1 |
-    xargs -I % expr % / 3)
-
-    # Convert decimal position of matching hex string to hex
-    if [[ -n $match ]]; then
-        poshex=$(printf "%x" "$match")
-        #echo "3: $match = $poshex" >&2  # debug
-        seek="$match"
-        xxd=$(xxd -u -l 6 -s "$seek" "$1")
-        #echo "4: $xxd" >&2  # debug
-        #printf %s "$xxd" | cut -d" " -f1-4  # debug
-        bytes=$(printf %s "$xxd" | cut -d" " -f2)
-        #echo "5: $bytes" >&2  # debug
-    else
-        #echo "No match!" >&2  # debug
-        bytes=""
-    fi
-}
-
-edit_scemd(){ 
-    # $1 is the file
-    # $2 is the eunit model
-    if [[ -f $1 ]] && [[ -n $2 ]]; then
-        backupdb "$1" || exit 1
-        if ! grep -q "$2" "$1"; then
-            hexold="44 58 31 32 32 32"  # DX1222
-            cp -p "$scemd" /tmp/scemd
-
-            # Check if the file is okay for editing
-            findbytes /tmp/scemd "$hexold"
-
-            if [[ -n $poshex ]] && [[ -n $hexnew ]] && [[ -n $match ]]; then
-                systemct stop scemd.service
-
-                # Replace bytes in file
-                #posrep=$(printf "%x\n" $((0x${poshex}+8)))
-                posrep=$(printf "%x\n" $((0x${poshex})))
-                if ! printf %s "${posrep}: $hexnew" | xxd -r - /tmp/scemd; then
-                    echo -e "${Error}ERROR${Off} Failed to enable $2 in scemd!" >&2
-                    systemct start scemd.service
-                    return
-                fi
-                systemct start scemd.service
-
-                if cp -p /tmp/scemd "$scemd"; then
-                    rm /tmp/scemd
-                fi
-
-                # Check we enabled eunit in scemd
-                if grep -q "$2" "$1"; then
-                    echo -e "Enabled ${Yellow}$2${Off} in ${Cyan}scemd${Off}" >&2
-                    #reboot=yes  # testing without reboot ###############################
-                else
-                    echo -e "${Error}ERROR${Off} Failed to enable $2 in scemd!" >&2
-                fi
-            else
-                echo -e "${Error}ERROR${Off} Failed to enable $2 in scemd!" >&2
-            fi
-        else
-            echo -e "${Yellow}$2${Off} already enabled in ${Cyan}scemd${Off}" >&2
+            echo -e "${Cyan}$1${Off} already enabled in ${Yellow}synoinfo.conf${Off}" >&2
         fi
     fi
 }
@@ -824,7 +769,7 @@ dts_ebox(){
     # Remove last }; so we can append to dts file
     sed -i '/^};/d' "$2"
 
-    # Append PCIe M.2 card node to dts file
+    # Append expansion unit node to dts file
     if [[ $1 == DX517 ]] || [[ $1 == DX513 ]] || [[ $1 == DX510 ]]; then
     cat >> "$2" <<EODX5bay
 
@@ -986,7 +931,7 @@ install_binfile(){
                 exit 1
             fi
         else
-            echo -e "${Error}ERROR${Off} Cannot add M2 PCIe card without ${1}!"
+            echo -e "${Error}ERROR${Off} Cannot add expansion unit without ${1}!"
             exit 1
         fi
     fi
@@ -1014,7 +959,6 @@ edit_modeldtb(){
         if [[ -x /usr/sbin/dtc ]]; then
 
             # Backup model.dtb
-            #backupdb "$dtb_file" long || exit 1  # debug
             backupdb "$dtb_file" || exit 1
 
             # Output model.dtb to model.dts
@@ -1026,10 +970,10 @@ edit_modeldtb(){
                 # Edit model.dts if needed
                 if ! grep "$c" "$dtb_file" >/dev/null; then
                     dts_ebox "$c" "$dts_file"
-                    echo -e "Added ${Yellow}$c${Off} to ${Cyan}model${hwrev}.dtb${Off}" >&2
+                    echo -e "Added ${Cyan}$c${Off} to ${Yellow}model${hwrev}.dtb${Off}" >&2
                     reboot=yes
                 else
-                    echo -e "${Yellow}$c${Off} already enabled in ${Cyan}model${hwrev}.dtb${Off}" >&2
+                    echo -e "${Cyan}$c${Off} already enabled in ${Yellow}model${hwrev}.dtb${Off}" >&2
                 fi
             done
 
@@ -1050,66 +994,56 @@ edit_modeldtb(){
 
 #------------------------------------------------------------------------------
 # Select expansion unit to enable
+ 
+# Show currently enabled eunit(s)
+show_enabled
 
-eunits=("DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" "Quit")
+eunits=("Check" "DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" "Restore" "Quit")
 PS3="Select your Expansion Unit: "
 select choice in "${eunits[@]}"; do
     echo -e "You selected $choice \n"
     case "$choice" in
         DX517)
             edit_synoinfo "$choice"
-            #hexnew="44 58 35 31 37 00"
-            hexnew="445835313700"
-            edit_scemd "$scemd" "$choice"
             eboxs=("$choice") && edit_modeldtb
             break
         ;;
         DX513)
             edit_synoinfo "$choice"
-            #hexnew="44 58 35 31 33 00"
-            hexnew="445835313300"
-            edit_scemd "$scemd" "$choice"
             eboxs=("$choice") && edit_modeldtb
             break
         ;;
         DX213)
             edit_synoinfo "$choice"
-            #hexnew="44 58 32 31 33 00"
-            hexnew="445832313300"
-            edit_scemd "$scemd" "$choice"
             eboxs=("$choice") && edit_modeldtb
             break
         ;;
         DX510)
             edit_synoinfo "$choice"
-            #hexnew="44 58 35 31 30 00"
-            hexnew="445835313300"
-            edit_scemd "$scemd" "$choice"
             eboxs=("$choice") && edit_modeldtb
             break
         ;;
         RX418)
             edit_synoinfo "$choice"
-            #hexnew="52 58 34 31 38 00"
-            hexnew="525834313800"
-            edit_scemd "$scemd" "$choice"
             eboxs=("$choice") && edit_modeldtb
             break
         ;;
         RX415)
             edit_synoinfo "$choice"
-            #hexnew="52 58 34 31 35 00"
-            hexnew="525834313500"
-            edit_scemd "$scemd" "$choice"
             eboxs=("$choice") && edit_modeldtb
             break
         ;;
         RX410)
             edit_synoinfo "$choice"
-            #hexnew="52 58 34 31 30 00"
-            hexnew="525834313000"
-            edit_scemd "$scemd" "$choice"
             eboxs=("$choice") && edit_modeldtb
+            break
+        ;;
+        Check)
+            check_enabled
+            exit
+        ;;
+        Restore)
+            restore_orig
             break
         ;;
         Quit) exit ;;

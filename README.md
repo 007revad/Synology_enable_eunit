@@ -10,12 +10,7 @@ Enable unsupported Synology eSATA Expansion Unit models
 
 This script will enable a choice of DX517, DX513, DX213, DX510, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
 
-You can enable DX517, RX418 and a 3rd model of either DX513, DX213, DX510, RX415 or RX410.
-
-> **Note** <br> If you later want to change the 3rd model you need to:
-> 1. Run the script with the --restore option.
-> 2. Run the script again to enable your chosen expansion unit.
-> 3. Reboot.
+You can enable as many different expansion unit models as you want.
 
 If you have 2 of the same expansion unit model you only need to enable it once for both expansion units to be enabled in DSM.
 
@@ -35,21 +30,21 @@ For example:
 
 ## Supported Models
 
-I'm 99% certain this script will work for the following Synology NAS models:
+This script will work for the following Synology NAS models:
 
-| Model   | Works | With     |
-|---------|-------|----------|
-| DS1823xs+ | ??? | |
-| DS1821+ | ??? | |
-| DS1621+ | ??? | |
-| DS1522+ | ??? | |
-| DS1520+ | ??? | |
-| DS923+  | ??? | |
-| DS920+  | ??? | |
-| DS723+  | ??? | |
-| DS720+  | ??? | |
+| Model   | Works | Confirmed |
+|---------|-------|-----------|
+| DS1823xs+ | yes | |
+| DS1821+ | yes | DX513, DX213, RX418 |
+| DS1621+ | yes | |
+| DS1522+ | yes | |
+| DS1520+ | yes | |
+| DS923+  | yes | |
+| DS920+  | yes | |
+| DS723+  | yes | |
+| DS720+  | yes | DX513, DX213, RX418 |
 | RS1221+, RS1221RP+ | yes | DX517 |
-| RS822+, RS822RP+ | ??? | |
+| RS822+, RS822RP+ | yes | |
 
 - The DiskStation models above already have DX517 enabled, and RX418 partially enabled.
 - The RackStation models above already have RX418 enabled, and DX517 partially enabled.
