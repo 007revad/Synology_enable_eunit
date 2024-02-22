@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v2.0.9"
+scriptver="v2.0.10"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -404,6 +404,24 @@ fi
 
 
 #------------------------------------------------------------------------------
+# Show connected expansion units
+
+if which syno_slot_mapping >/dev/null; then
+    #found_eunits=($(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}'))
+    read -r -a found_eunits <<< "$(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}')"
+    echo "Connected Expansion Units:"
+    if [[ ${#found_eunits[@]} -gt "0" ]]; then
+        for e in "${found_eunits[@]}"; do
+            echo -e "${Cyan}$e${Off}"
+        done
+    else
+        echo -e "${Cyan}None${Off}"
+    fi
+    echo ""
+fi
+
+
+#------------------------------------------------------------------------------
 # Set file variables
 
 if [[ -f /etc.defaults/model.dtb ]]; then  # Is device tree model
@@ -593,9 +611,9 @@ check_section_key_value(){
         if [[ -n $2 ]]; then
             if [[ -n $3 ]]; then
                 if [[ $setting == "yes" ]]; then
-                    echo -e "${Yellow}$4${Off} is enabled for ${Cyan}$3${Off}" >&2
+                    echo -e "${Cyan}$4${Off} is enabled for ${Yellow}$3${Off}" >&2
                 else
-                    echo -e "$4 is ${Cyan}not${Off} enabled for $3" >&2
+                    echo -e "${Cyan}$4${Off} is ${Cyan}not${Off} enabled for ${Yellow}$3${Off}" >&2
                 fi
             else
                 echo -e "Key name not specified!" >&2
@@ -612,16 +630,16 @@ check_modeldtb(){
     # $1 is DX517 or RX418 etc
     if [[ -f "${dtb_file}" ]]; then
         if grep --text "$1" "${dtb_file}" >/dev/null; then
-            echo -e "${Yellow}$1${Off} is enabled in ${Cyan}${dtb_file}${Off}" >& 2
+            echo -e "${Cyan}$1${Off} is enabled in ${Yellow}${dtb_file}${Off}" >& 2
         else
-            echo -e "$1 is ${Cyan}not${Off} enabled in ${Cyan}${dtb_file}${Off}" >& 2
+            echo -e "${Cyan}$1${Off} is ${Cyan}not${Off} enabled in ${Yellow}${dtb_file}${Off}" >& 2
         fi
     fi
     if [[ -f "${dtb2_file}" ]]; then
         if grep --text "$1" "${dtb2_file}" >/dev/null; then
-            echo -e "${Yellow}$1${Off} is enabled in ${Cyan}${dtb2_file}${Off}" >& 2
+            echo -e "${Cyan}$1${Off} is enabled in ${Yellow}${dtb2_file}${Off}" >& 2
         else
-            echo -e "$1 is ${Cyan}not${Off} enabled in ${Cyan}${dtb2_file}${Off}" >& 2
+            echo -e "${Cyan}$1${Off} is ${Cyan}not${Off} enabled in ${Yellow}${dtb2_file}${Off}" >& 2
         fi
     fi
 }
@@ -631,7 +649,7 @@ check_enabled(){
     setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
     IFS=',' read -r -a eunits_array <<< "$setting"
     for e in "${eunits_array[@]}"; do
-        echo -e "${Yellow}${e#Synology-}${Off} is enabled in ${Cyan}${synoinfo}${Off}"
+        echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo}${Off}"
     done
     echo ""
 
@@ -641,7 +659,7 @@ check_enabled(){
     for e in "${eunits_array2[@]}"; do
 #        if [[ ${eunits_array[*]} =~ "$e" ]]; then
         if [[ ${eunits_array[*]} =~ $e ]]; then
-            echo -e "${Yellow}${e#Synology-}${Off} is enabled in ${Cyan}${synoinfo2}${Off}"
+            echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo2}${Off}"
         fi
     done
     echo ""
@@ -679,9 +697,9 @@ show_enabled(){
             count=$((count +1))
         fi
         if [[ $count == "4" ]]; then
-            echo -e "${Yellow}${e#Synology-}${Off} is enabled"
+            echo -e "${Cyan}${e#Synology-}${Off} is enabled"
         else
-            echo -e "${Yellow}${e#Synology-}${Off} partially enabled"
+            echo -e "${Cyan}${e#Synology-}${Off} ${Yellow}partially${Off} enabled"
         fi
     done
     echo ""
@@ -729,16 +747,17 @@ edit_synoinfo(){
         # support_ew_20_eunit="Synology-DX517,Synology-RX418"        
         setting=$(synogetkeyvalue "$synoinfo" support_ew_20_eunit)
         if [[ $setting != *"$1"* ]]; then
+            #backupdb "$synoinfo" long || exit 1  # debug
             backupdb "$synoinfo" || exit 1
             newsetting="${setting},Synology-${1}"
             if synosetkeyvalue "$synoinfo" support_ew_20_eunit "$newsetting"; then
                 synosetkeyvalue "$synoinfo2" support_ew_20_eunit "$newsetting"
-                echo -e "Enabled ${Yellow}$1${Off} in ${Cyan}synoinfo.conf${Off}" >&2
+                echo -e "Enabled ${Cyan}$1${Off} in ${Yellow}synoinfo.conf${Off}" >&2
             else
                 echo -e "${Error}ERROR 9${Off} Failed to enable $1 in synoinfo.conf!" >&2
             fi
         else
-            echo -e "${Yellow}$1${Off} already enabled in ${Cyan}synoinfo.conf${Off}" >&2
+            echo -e "${Cyan}$1${Off} already enabled in ${Yellow}synoinfo.conf${Off}" >&2
         fi
     fi
 }
@@ -951,10 +970,10 @@ edit_modeldtb(){
                 # Edit model.dts if needed
                 if ! grep "$c" "$dtb_file" >/dev/null; then
                     dts_ebox "$c" "$dts_file"
-                    echo -e "Added ${Yellow}$c${Off} to ${Cyan}model${hwrev}.dtb${Off}" >&2
+                    echo -e "Added ${Cyan}$c${Off} to ${Yellow}model${hwrev}.dtb${Off}" >&2
                     reboot=yes
                 else
-                    echo -e "${Yellow}$c${Off} already enabled in ${Cyan}model${hwrev}.dtb${Off}" >&2
+                    echo -e "${Cyan}$c${Off} already enabled in ${Yellow}model${hwrev}.dtb${Off}" >&2
                 fi
             done
 
