@@ -1,3 +1,12 @@
+v2.0.9
+- Added Check and Restore as menu choices (so you don't need to run the script with an option to check or restore).
+- Now shows which expansion units are currently enabled.
+- Can now enable all of the available expansion units.
+  - No longer need to restore to change the 3rd expansion unit (just enable a 4th or 5th etc).
+- No longer edits scemd as it was unneeded and limited the number of expansion units that could be enabled.
+- Bug fix for systemctl misspelt as systemct.
+- Bug fix for error message that said "Cannot add M2 PCIe card" instead of "Cannot add expansion unit".
+
 v1.0.8
 - Hard coded /usr/syno/bin/ for Synology commands (to prevent $PATH issues).
 
