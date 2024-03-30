@@ -21,13 +21,6 @@ If you have 2 of the same expansion unit model you only need to enable it once f
 
 <br>
 
-I'm not sure if the RS models would only be able to use 4 of the 5 bays in a DX517 if the total drive number exceded the models' max drive number.
-
-For example:
-- An RS822+ may only see 4 drives in a DX517.
-- An RS1221+ may only see 8 drives in two DX517.
-
-
 ## Supported Models
 
 This script will work for the following Synology NAS models:
