@@ -106,3 +106,7 @@ After any DSM update you will need to run this script again.
 <p align="center">Restore option</p>
 <p align="center"><img src="/images/restore.png"></p>
 
+<p align="center">DS1821+ with a DX213</p>
+<p align="center"><img src="/images/1821+dx213-1.png"></p>
+
+<p align="center"><img src="/images/1821+dx213-2.png"></p>
