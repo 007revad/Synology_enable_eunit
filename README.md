@@ -55,6 +55,10 @@ This script will work for the following Synology NAS models:
 
 ## How to run the script
 
+### Scheduling the script in Synology's Task Scheduler
+
+See <a href=how_to_schedule.md/>How to schedule a script in Synology Task Scheduler</a>
+
 ### Run the script via SSH
 
 [How to enable SSH and login to DSM via SSH](https://kb.synology.com/en-global/DSM/tutorial/How_to_login_to_DSM_with_root_permission_via_SSH_Telnet)
@@ -68,22 +72,24 @@ sudo -s /volume1/scripts/syno_enable_eunit.sh
 > **Note** <br>
 > Replace /volume1/scripts/ with the path to where the script is located.
 
-**Options:**
+### Options:
 ```YAML
   -c, --check           Check expansion units status
   -r, --restore         Restore from backups to undo changes
+      --unit=EUNIT      Automatically enable specified expansion unit
+                          Only needed when script is scheduled
+                          EUNIT is dx517, dx513, dx213, dx510, rx418, rx415 or rx410
   -e, --email           Disable colored text in output scheduler emails
       --autoupdate=AGE  Auto update script (useful when script is scheduled)
-                        AGE is how many days old a release must be before
-                        auto-updating. AGE must be a number: 0 or greater
+                          AGE is how many days old a release must be before
+                          auto-updating. AGE must be a number: 0 or greater
   -h, --help            Show this help message
   -v, --version         Show the script version
-
 ```
 
 ## What about DSM updates?
 
-After any DSM update you will need to run this script again. 
+After any DSM update you will need to run this script again, if you don't have it scheduled to run at boot. 
 
 <br>
 
