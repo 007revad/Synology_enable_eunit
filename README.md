@@ -55,6 +55,10 @@ This script will work for the following Synology NAS models:
 
 ## How to run the script
 
+### Scheduling the script in Synology's Task Scheduler
+
+See <a href=how_to_schedule.md/>How to schedule a script in Synology Task Scheduler</a>
+
 ### Run the script via SSH
 
 [How to enable SSH and login to DSM via SSH](https://kb.synology.com/en-global/DSM/tutorial/How_to_login_to_DSM_with_root_permission_via_SSH_Telnet)
@@ -68,7 +72,7 @@ sudo -s /volume1/scripts/syno_enable_eunit.sh
 > **Note** <br>
 > Replace /volume1/scripts/ with the path to where the script is located.
 
-**Options:**
+### Options:
 ```YAML
   -c, --check           Check expansion units status
   -r, --restore         Restore from backups to undo changes
@@ -85,7 +89,7 @@ sudo -s /volume1/scripts/syno_enable_eunit.sh
 
 ## What about DSM updates?
 
-After any DSM update you will need to run this script again. 
+After any DSM update you will need to run this script again, if you don't have it scheduled to run at boot. 
 
 <br>
 
