@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v2.0.10"
+scriptver="v2.1.11"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -21,7 +21,7 @@ scriptname=syno_enable_eunit
 if [ ! "$(basename "$BASH")" = bash ]; then
     echo "This is a bash script. Do not run it with $(basename "$BASH")"
     printf \\a
-    exit 1
+    exit 1  # Not running in bash
 fi
 
 # Check script is running on a Synology NAS
@@ -29,7 +29,7 @@ if ! /usr/bin/uname -a | grep -i synology >/dev/null; then
     echo "This script is NOT running on a Synology NAS!"
     echo "Copy the script to a folder on the Synology"
     echo "and run it from there."
-    exit 1
+    exit 1  # Not Synology NAS
 fi
 
 
@@ -46,6 +46,10 @@ Usage: $(basename "$0") [options]
 Options:
   -c, --check           Check expansion units status
   -r, --restore         Restore from backups to undo changes
+      --unit=EUNIT      Automatically enable specified expansion unit
+                          Only needed when script is scheduled
+                          EUNIT is dx517, dx513, dx213, dx510, rx418,
+                          rx415 or rx410
   -e, --email           Disable colored text in output scheduler emails
       --autoupdate=AGE  Auto update script (useful when script is scheduled)
                           AGE is how many days old a release must be before
@@ -76,7 +80,7 @@ autoupdate=""
 
 # Check for flags with getopt
 if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -l \
-    check,restore,help,version,email,autoupdate:,log,debug -- "${args[@]}")"; then
+    check,restore,unit:,help,version,email,autoupdate:,log,debug -- "${args[@]}")"; then
     eval set -- "$options"
     while true; do
         case "${1,,}" in
@@ -98,6 +102,15 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -l \
                 ;;
             -r|--restore)       # Restore original settings
                 restore=yes
+                break
+                ;;
+            --unit)             # Specify eunit to enable for task scheduler
+                if [[ ${2,,} =~ ^(d|r)x[0-9]+$ ]]; then
+                    unit="${2^^}"
+                else
+                    echo -e "Invalid argument '$2'\n"
+                    exit 2  # Invalid argument
+                fi
                 break
                 ;;
             -e|--email)         # Disable colour text in task scheduler emails
@@ -156,7 +169,7 @@ fi
 if [[ $( whoami ) != "root" ]]; then
     ding
     echo -e "${Error}ERROR${Off} This script must be run as sudo or root!"
-    exit 1
+    exit 1  # Not running as sudo or root
 fi
 
 # Get DSM major and minor versions
@@ -258,7 +271,7 @@ echo -e "Running from: ${scriptpath}/$scriptfile\n"
 scriptvol=$(echo "$scriptpath" | cut -d"/" -f2)
 vg=$(lvdisplay | grep /volume_"${scriptvol#volume}" | cut -d"/" -f3)
 md=$(pvdisplay | grep -B 1 -E '[ ]'"$vg" | grep /dev/ | cut -d"/" -f3)
-if cat /proc/mdstat | grep "$md" | grep nvme >/dev/null; then
+if grep "$md" /proc/mdstat | grep nvme >/dev/null; then
     echo -e "${Yellow}WARNING${Off} Don't store this script on an NVMe volume!"
 fi
 
@@ -748,7 +761,7 @@ edit_synoinfo(){
         setting=$(synogetkeyvalue "$synoinfo" support_ew_20_eunit)
         if [[ $setting != *"$1"* ]]; then
             #backupdb "$synoinfo" long || exit 1  # debug
-            backupdb "$synoinfo" || exit 1
+            backupdb "$synoinfo" || exit 1  # Failed to backup file
             newsetting="${setting},Synology-${1}"
             if synosetkeyvalue "$synoinfo" support_ew_20_eunit "$newsetting"; then
                 synosetkeyvalue "$synoinfo2" support_ew_20_eunit "$newsetting"
@@ -917,7 +930,7 @@ install_binfile(){
             if ! curl -kL -m 30 --connect-timeout 5 "$2" -o "/tmp/$1"; then
                 echo -e "${Error}ERROR${Off} Failed to download ${1}!"
                 #return
-                exit 1
+                exit 1  # Failed to download  binfile
             fi
             binfile="/tmp/${1}"
 
@@ -928,11 +941,11 @@ install_binfile(){
             if [[ $md5 != "$6" ]]; then
                 echo "Expected md5:   $6"
                 echo -e "${Error}ERROR${Off} Downloaded $1 md5 hash does not match!"
-                exit 1
+                exit 1  # Downloaded $1 md5 hash does not match
             fi
         else
             echo -e "${Error}ERROR${Off} Cannot add expansion unit without ${1}!"
-            exit 1
+            exit 1  # User answered no
         fi
     fi
 
@@ -959,7 +972,7 @@ edit_modeldtb(){
         if [[ -x /usr/sbin/dtc ]]; then
 
             # Backup model.dtb
-            backupdb "$dtb_file" || exit 1
+            backupdb "$dtb_file" || exit 1  # Failed to backup model.dtb
 
             # Output model.dtb to model.dts
             dtc -q -I dtb -O dts -o "$dts_file" "$dtb_file"  # -q Suppress warnings
@@ -998,45 +1011,42 @@ edit_modeldtb(){
 # Show currently enabled eunit(s)
 show_enabled
 
-eunits=("Check" "DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" "Restore" "Quit")
-PS3="Select your Expansion Unit: "
-select choice in "${eunits[@]}"; do
-    echo -e "You selected $choice \n"
+enable_eunit(){ 
     case "$choice" in
         DX517)
             edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
-            break
+            return
         ;;
         DX513)
             edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
-            break
+            return
         ;;
         DX213)
             edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
-            break
+            return
         ;;
         DX510)
             edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
-            break
+            return
         ;;
         RX418)
             edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
-            break
+            return
         ;;
         RX415)
             edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
-            break
+            return
         ;;
         RX410)
             edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
-            break
+            return
         ;;
         Check)
             check_enabled
@@ -1044,7 +1054,7 @@ select choice in "${eunits[@]}"; do
         ;;
         Restore)
             restore_orig
-            break
+            return
         ;;
         Quit) exit ;;
         "") echo "Invalid Choice!" ;;
@@ -1053,7 +1063,26 @@ select choice in "${eunits[@]}"; do
             exit
         ;;
     esac
-done
+}
+
+eunits=("Check" "DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" "Restore" "Quit")
+if [[ -n $unit ]]; then
+    # Expansion Unit supplied as argument
+    if [[ ${eunits[*]} =~ "${unit^^}" ]]; then
+        choice="${unit^^}"
+        echo -e "$choice selected\n"
+        enable_eunit
+    else
+        echo -e "Unsupported expansion unit argument: $unit\n"
+        exit 2  # Unsupported expansion unit argument
+    fi
+else
+    PS3="Select your Expansion Unit: "
+    select choice in "${eunits[@]}"; do
+        echo -e "You selected $choice \n"
+        enable_eunit
+    done
+fi
 #echo ""
 
 
