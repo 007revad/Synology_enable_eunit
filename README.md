@@ -15,12 +15,9 @@ You can enable as many different expansion unit models as you want.
 
 If you have 2 of the same expansion unit model you only need to enable it once for both expansion units to be enabled in DSM.
 
-<br>
-
 > **Warning** <br>
 > Do ***NOT*** span a storage pool between the NAS and Expansion Unit. After a DSM update the Expansion Unit will be unsupported until you run this script again, which will be hard to do if your only storage pool is offline. Also do ***NOT*** store this script on a volume in the expansion unit.
 
-<br>
 
 ## Supported Models
 
@@ -42,6 +39,20 @@ This script will work for the following Synology NAS models:
 
 - The DiskStation models above already have DX517 enabled, and RX418 partially enabled.
 - The RackStation models above already have RX418 enabled, and DX517 partially enabled.
+
+## eSATA expansion unit speeds
+
+| Model | eSATA Speed | Notes |
+|-------|-------------|-------|
+| DX517 | 6 Gbps | 600 MB/s |
+|	RX418 | 6 Gbps | 600 MB/s |
+| | |
+|	DX513 | 3 Gbps | 300 MB/s |
+| DX213 | 3 Gbps | 300 MB/s |
+|	RX415 | 3 Gbps | 300 MB/s |
+| | |
+|	DX510 | 1.5 Gbps | 150 MB/s | 
+|	RX410 | 1.5 Gbps | 150 MB/s |
 
 
 ## Download the script
