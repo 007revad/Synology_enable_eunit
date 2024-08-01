@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v2.1.12"
+scriptver="v2.1.13"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -431,6 +431,9 @@ if which syno_slot_mapping >/dev/null; then
         echo -e "${Cyan}None${Off}"
     fi
     echo ""
+else
+    echo -e "${Error}ERROR${Off} Unsupported Synology NAS model. No syno_slot_mapping command!"
+    exit 1  # No syno_slot_mapping file
 fi
 
 
@@ -451,6 +454,9 @@ if [[ -f /etc.defaults/model.dtb ]]; then  # Is device tree model
     dtb2_file="/etc/model${hwrev}.dtb"
     #dts_file="/etc.defaults/model${hwrev}.dts"
     dts_file="/tmp/model${hwrev}.dts"
+else
+    echo -e "${Error}ERROR${Off} Unsupported Synology NAS model. No model.dtb file!"
+    exit 1  # No model.dtb file
 fi
 
 synoinfo="/etc.defaults/synoinfo.conf"
