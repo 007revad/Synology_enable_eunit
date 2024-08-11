@@ -1,6 +1,6 @@
 v2.1.13
 - Added checks to prevent running on unsupported Synology NAS model.
-  - Needs syno_slot_mapping command and /et/model.dtb file.
+  - Needs syno_slot_mapping command and /etc/model.dtb file.
 
 v2.1.12
 - Bug fix for false "Failed to delete tmp files" log entries when script updates itself.
