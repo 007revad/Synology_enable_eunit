@@ -70,6 +70,17 @@ This script will work for InfiniBand expansion units with the following Synology
 |	DX510 | 1.5 Gbps | 150 MB/s | 
 |	RX410 | 1.5 Gbps | 150 MB/s |
 
+## eSATA expansion unit speeds
+
+| Model | eSATA Speed | Notes |
+|-------|-------------|-------|
+| RX1217, RX1217RP | 4 x 6 Gbps | 4 x 600 MB/s |
+| DX1215II, DX1215 | 4 x 6 Gbps | 4 x 600 MB/s |
+| | |
+| RX1214, RX1214RP | 4 x 3 Gbps | 4 x 300 MB/s |
+| | |
+| RX1211, RX1211RP | 4 x 1.5 Gbps | 4 x 150 MB/s |
+| DX1211 | 4 x 1.5 Gbps | 4 x 150 MB/s |
 
 ## Download the script
 
