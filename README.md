@@ -9,9 +9,9 @@
 ### Description
 Enable unsupported Synology eSATA and InfiniBand Expansion Unit models
 
-This script will enable a choice of DX517, DX513, DX213, DX510, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
-
-This script will enable a choice of DX517, DX513, DX213, DX510, RX418, RX415 or RX410 on Synology NAS that have an InfiniBand port.
+This script will enable a choice of:
+- DX517, DX513, DX213, DX510, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
+- RX1217RP, RX1217, RX1214RP, RX1214, RX1211RP, RX1211, DX1215II, DX1215 or DX1211 on Synology NAS that have an InfiniBand port.
 
 You can enable as many different expansion unit models as you want.
 
@@ -21,12 +21,13 @@ If you have 2 of the same expansion unit model you only need to enable it once f
 > Do ***NOT*** span a storage pool between the NAS and Expansion Unit. After a DSM update the Expansion Unit will be unsupported until you run this script again, which will be hard to do if your only storage pool is offline. Also do ***NOT*** store this script on a volume in the expansion unit.
 
 
-## Supported Models
+## Supported NAS Models
 
 This script will work for eSATA expansion units with the following Synology NAS models:
 
 | Model   | Works | Confirmed |
 |---------|-------|-----------|
+| DS2422+ | yes | |
 | DS1823xs+ | yes | |
 | DS1821+ | yes | DX513, DX213, RX418 |
 | DS1621+ | yes | |
@@ -39,8 +40,8 @@ This script will work for eSATA expansion units with the following Synology NAS 
 | RS1221+, RS1221RP+ | yes | DX517 |
 | RS822+, RS822RP+ | yes | |
 
-- The DiskStation models above already have DX517 enabled, and RX418 partially enabled.
-- The RackStation models above already have RX418 enabled, and DX517 partially enabled.
+- The DiskStation models above already have DX517 enabled.
+- The RackStation models above already have RX418 enabled.
 
 This script will work for InfiniBand expansion units with the following Synology NAS models:
 
@@ -49,6 +50,8 @@ This script will work for InfiniBand expansion units with the following Synology
 | RS2421+ | yes | |
 | RS2421RP+ | yes | |
 | RS2821RP+ | yes | |
+
+- The RackStation models above already have RX1217RP and RX1217 enabled.
 
 ## eSATA expansion unit speeds
 
