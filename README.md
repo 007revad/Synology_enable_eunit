@@ -7,9 +7,11 @@
 [![committers.top badge](https://user-badge.committers.top/australia/007revad.svg)](https://user-badge.committers.top/australia/007revad)
 
 ### Description
-Enable unsupported Synology eSATA Expansion Unit models
+Enable unsupported Synology eSATA and InfiniBand Expansion Unit models
 
 This script will enable a choice of DX517, DX513, DX213, DX510, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
+
+This script will enable a choice of DX517, DX513, DX213, DX510, RX418, RX415 or RX410 on Synology NAS that have an InfiniBand port.
 
 You can enable as many different expansion unit models as you want.
 
@@ -21,7 +23,7 @@ If you have 2 of the same expansion unit model you only need to enable it once f
 
 ## Supported Models
 
-This script will work for the following Synology NAS models:
+This script will work for eSATA expansion units with the following Synology NAS models:
 
 | Model   | Works | Confirmed |
 |---------|-------|-----------|
@@ -39,6 +41,14 @@ This script will work for the following Synology NAS models:
 
 - The DiskStation models above already have DX517 enabled, and RX418 partially enabled.
 - The RackStation models above already have RX418 enabled, and DX517 partially enabled.
+
+This script will work for InfiniBand expansion units with the following Synology NAS models:
+
+| Model   | Works | Confirmed |
+|---------|-------|-----------|
+| RS2421+ | yes | |
+| RS2421RP+ | yes | |
+| RS2821RP+ | yes | |
 
 ## eSATA expansion unit speeds
 
