@@ -23,6 +23,8 @@ If you have 2 of the same expansion unit model you only need to enable it once f
 
 ## Supported NAS Models
 
+### Models with eSATA expansion ports
+
 This script will work for eSATA expansion units with the following Synology NAS models:
 
 | Model   | Works | Confirmed |
@@ -43,17 +45,18 @@ This script will work for eSATA expansion units with the following Synology NAS 
 - The DiskStation models above already have DX517 enabled.
 - The RackStation models above already have RX418 enabled.
 
+### Models with InfiniBand expansion ports
+
 This script will work for InfiniBand expansion units with the following Synology NAS models:
 
 | Model   | Works | Confirmed |
 |---------|-------|-----------|
-| RS2421+ | yes | |
-| RS2421RP+ | yes | |
+| RS2421+, RS2421RP+ | yes | |
 | RS2821RP+ | yes | |
 
 - The RackStation models above already have RX1217RP and RX1217 enabled.
 
-## eSATA expansion unit speeds
+### eSATA expansion unit speeds
 
 | Model | eSATA Speed | Notes |
 |-------|-------------|-------|
@@ -67,6 +70,17 @@ This script will work for InfiniBand expansion units with the following Synology
 |	DX510 | 1.5 Gbps | 150 MB/s | 
 |	RX410 | 1.5 Gbps | 150 MB/s |
 
+### InfiniBand expansion unit speeds
+
+| Model | InfiniBand Speed | Notes |
+|-------|-------------|-------|
+| RX1217, RX1217RP | 4 x 6 Gbps | 4 x 600 MB/s |
+| DX1215II, DX1215 | 4 x 6 Gbps | 4 x 600 MB/s |
+| | |
+| RX1214, RX1214RP | 4 x 3 Gbps | 4 x 300 MB/s |
+| | |
+| RX1211, RX1211RP | 4 x 1.5 Gbps | 4 x 150 MB/s |
+| DX1211 | 4 x 1.5 Gbps | 4 x 150 MB/s |
 
 ## Download the script
 
