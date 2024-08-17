@@ -23,6 +23,8 @@ If you have 2 of the same expansion unit model you only need to enable it once f
 
 ## Supported NAS Models
 
+### Models with eSATA expansion ports
+
 This script will work for eSATA expansion units with the following Synology NAS models:
 
 | Model   | Works | Confirmed |
@@ -42,6 +44,8 @@ This script will work for eSATA expansion units with the following Synology NAS 
 
 - The DiskStation models above already have DX517 enabled.
 - The RackStation models above already have RX418 enabled.
+
+### Models with InfiniBand expansion ports
 
 This script will work for InfiniBand expansion units with the following Synology NAS models:
 
