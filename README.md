@@ -9,7 +9,7 @@
 ### Description
 Enable unsupported Synology eSATA and InfiniBand Expansion Unit models
 
-This script will enable a choice of:
+This script will allow enabling:
 - DX517, DX513, DX213, DX510, RX418, RX415 or RX410 on Synology NAS that have an eSATA port.
 - RX1217RP, RX1217, RX1214RP, RX1214, RX1211RP, RX1211, DX1215II, DX1215 or DX1211 on Synology NAS that have an InfiniBand port.
 
