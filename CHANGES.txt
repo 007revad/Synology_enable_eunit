@@ -1,4 +1,4 @@
-v2.2.14
+v3.0.14
 - Added support for InfiniBand expansion units for RS2421+, RS2421RP+ and RS2821RP+ NAS.
   - Supports RX1217RP, RX1217, RX1214RP, RX1214, RX1211RP, RX1211, DX1215II, DX1215 or DX1211 expansion units.
 - Removed editing synoinfo.conf as it only "support_ew_20_eunit" only relates to extended warranty.
