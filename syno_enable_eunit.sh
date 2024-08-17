@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v2.2.14"
+scriptver="v3.0.14"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -25,7 +25,7 @@ if [ ! "$(basename "$BASH")" = bash ]; then
 fi
 
 # Check script is running on a Synology NAS
-if ! /usr/bin/uname -a | grep -i synology >/dev/null; then
+if ! /usr/bin/uname -a | grep -q -i synology; then
     echo "This script is NOT running on a Synology NAS!"
     echo "Copy the script to a folder on the Synology"
     echo "and run it from there."
@@ -277,7 +277,7 @@ echo -e "Running from: ${scriptpath}/$scriptfile\n"
 scriptvol=$(echo "$scriptpath" | cut -d"/" -f2)
 vg=$(lvdisplay | grep /volume_"${scriptvol#volume}" | cut -d"/" -f3)
 md=$(pvdisplay | grep -B 1 -E '[ ]'"$vg" | grep /dev/ | cut -d"/" -f3)
-if grep "$md" /proc/mdstat | grep nvme >/dev/null; then
+if grep "$md" /proc/mdstat | grep -q nvme; then
     echo -e "${Yellow}WARNING${Off} Don't store this script on an NVMe volume!"
 fi
 
@@ -436,7 +436,7 @@ if which syno_slot_mapping >/dev/null; then
     else
         echo -e "${Cyan}None${Off}"
     fi
-    echo ""
+    #echo ""
 else
     echo -e "${Error}ERROR${Off} Unsupported Synology NAS model. No syno_slot_mapping command!"
     exit 1  # No syno_slot_mapping file
@@ -522,9 +522,7 @@ restore_orig(){
         if [[ -f ${synoinfo}.bak ]]; then
             setting="$(/usr/syno/bin/synogetkeyvalue "${synoinfo}.bak" support_ew_20_eunit)"
             setting2="$(/usr/syno/bin/synogetkeyvalue "${synoinfo}" support_ew_20_eunit)"
-            if [[ $setting == "$setting2" ]]; then
-                echo -e "${Cyan}OK${Off} ${synoinfo}"
-            else
+            if [[ $setting != "$setting2" ]]; then
                 if /usr/syno/bin/synosetkeyvalue "$synoinfo" support_ew_20_eunit "$setting"; then
                     /usr/syno/bin/synosetkeyvalue "$synoinfo2" support_ew_20_eunit "$setting"
                     echo -e "Restored ${synoinfo}"
@@ -611,125 +609,43 @@ fi
 #----------------------------------------------------------
 # Check currently enabled expansion units
 
-check_key_value(){ 
-    # $1 is path/file
-    # $2 is key
-    setting="$(/usr/syno/bin/synogetkeyvalue "$1" "$2")"
-    if [[ -f $1 ]]; then
-        if [[ -n $2 ]]; then
-            echo -e "${Yellow}$2${Off} = $setting" >&2
-        else
-            echo -e "Key name not specified!" >&2
-        fi
-    else
-        echo -e "File not found: $1" >&2
-    fi
-}
-
-check_section_key_value(){ 
-    # $1 is path/file
-    # $2 is section
-    # $3 is key
-    # $4 is description
-    setting="$(/usr/syno/bin/get_section_key_value "$1" "$2" "$3")"
-    if [[ -f $1 ]]; then
-        if [[ -n $2 ]]; then
-            if [[ -n $3 ]]; then
-                if [[ $setting == "yes" ]]; then
-                    echo -e "${Cyan}$4${Off} is enabled for ${Yellow}$3${Off}" >&2
-                else
-                    echo -e "${Cyan}$4${Off} is ${Cyan}not${Off} enabled for ${Yellow}$3${Off}" >&2
-                fi
-            else
-                echo -e "Key name not specified!" >&2
-            fi
-        else
-            echo -e "Section name not specified!" >&2
-        fi
-    else
-        echo -e "File not found: $1" >&2
-    fi
-}
+supported_eunits=("DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" \
+"RX1217rp" "RX1217" "RX1214rp" "RX1214" "RX1211rp" "RX1211" \
+"DX1215II" "DX1215" "DX1211")
 
 check_modeldtb(){ 
     # $1 is DX517 or RX418 etc
-    if [[ -f "${dtb_file}" ]]; then
-        if grep --text "$1" "${dtb_file}" >/dev/null; then
-            echo -e "${Cyan}$1${Off} is enabled in ${Yellow}${dtb_file}${Off}" >& 2
-        else
-            echo -e "${Cyan}$1${Off} is ${Cyan}not${Off} enabled in ${Yellow}${dtb_file}${Off}" >& 2
-        fi
-    fi
     if [[ -f "${dtb2_file}" ]]; then
-        if grep --text "$1" "${dtb2_file}" >/dev/null; then
+        if grep -q --text "$1" "${dtb2_file}"; then
             echo -e "${Cyan}$1${Off} is enabled in ${Yellow}${dtb2_file}${Off}" >& 2
         else
             echo -e "${Cyan}$1${Off} is ${Cyan}not${Off} enabled in ${Yellow}${dtb2_file}${Off}" >& 2
         fi
     fi
+    if [[ -f "${dtb_file}" ]]; then
+        if grep -q --text "$1" "${dtb_file}"; then
+            echo -e "${Cyan}$1${Off} is enabled in ${Yellow}${dtb_file}${Off}" >& 2
+        else
+            echo -e "${Cyan}$1${Off} is ${Cyan}not${Off} enabled in ${Yellow}${dtb_file}${Off}" >& 2
+        fi
+    fi
 }
 
 check_enabled(){ 
-# synoinfo.conf support_ew_20_eunit related to extended warranty
-#    # /etc.defaults/synoinfo.conf
-#    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
-#    IFS=',' read -r -a eunits_array <<< "$setting"
-#    for e in "${eunits_array[@]}"; do
-#        echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo}${Off}"
-#    done
-#    echo ""
-#
-#    # /etc/synoinfo.conf
-#    setting2=$(/usr/syno/bin/synogetkeyvalue "$synoinfo2" support_ew_20_eunit)
-#    IFS=',' read -r -a eunits_array2 <<< "$setting2"
-#    for e in "${eunits_array2[@]}"; do
-#        if [[ ${eunits_array[*]} =~ $e ]]; then
-#            echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo2}${Off}"
-#        fi
-#    done
-#    echo ""
-
-    for e in "${eunits_array[@]}"; do
-        check_modeldtb "${e#Synology-}"
+    echo ""
+    for e in "${supported_eunits[@]}"; do
+        if grep -q --text "$e" "${dtb_file}"; then
+            check_modeldtb "${e#Synology-}"
+        fi
     done
     echo ""
 }
 
 if [[ $check == "yes" ]]; then
-    echo ""
+    #echo ""
     check_enabled
     exit
 fi
-
-
-show_enabled(){ 
-# synoinfo.conf support_ew_20_eunit related to extended warranty
-#    # /etc.defaults/synoinfo.conf
-#    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
-#    IFS=',' read -r -a eunits_array <<< "$setting"
-#    # /etc/synoinfo.conf
-#    setting2=$(/usr/syno/bin/synogetkeyvalue "$synoinfo2" support_ew_20_eunit)
-#    IFS=',' read -r -a eunits_array2 <<< "$setting2"
-
-    for e in "${eunits_array[@]}"; do
-        count="1"
-        if [[ ${eunits_array2[*]} =~ $e ]]; then
-            count=$((count +1))
-        fi
-        if grep --text "${e#Synology-}" "${dtb_file}" >/dev/null; then
-            count=$((count +1))
-        fi
-        if grep --text "${e#Synology-}" "${dtb2_file}" >/dev/null; then
-            count=$((count +1))
-        fi
-        if [[ $count == "4" ]]; then
-            echo -e "${Cyan}${e#Synology-}${Off} is enabled"
-        else
-            echo -e "${Cyan}${e#Synology-}${Off} ${Yellow}partially${Off} enabled"
-        fi
-    done
-    echo ""
-}
 
 
 #------------------------------------------------------------------------------
@@ -764,30 +680,6 @@ backupdb(){
         return 1
     fi
     return 0
-}
-
-edit_synoinfo(){ 
-# synoinfo.conf support_ew_20_eunit related to extended warranty
-
-    # $1 is the eunit model
-    if [[ -n $1 ]]; then
-        # Check if already enabled in synoinfo.conf
-        # support_ew_20_eunit="Synology-DX517,Synology-RX418"        
-        setting=$(synogetkeyvalue "$synoinfo" support_ew_20_eunit)
-        if [[ $setting != *"$1"* ]]; then
-            #backupdb "$synoinfo" long || exit 1  # debug
-            backupdb "$synoinfo" || exit 1  # Failed to backup file
-            newsetting="${setting},Synology-${1}"
-            if synosetkeyvalue "$synoinfo" support_ew_20_eunit "$newsetting"; then
-                synosetkeyvalue "$synoinfo2" support_ew_20_eunit "$newsetting"
-                echo -e "Enabled ${Cyan}$1${Off} in ${Yellow}synoinfo.conf${Off}" >&2
-            else
-                echo -e "${Error}ERROR 9${Off} Failed to enable $1 in synoinfo.conf!" >&2
-            fi
-        else
-            echo -e "${Cyan}$1${Off} already enabled in ${Yellow}synoinfo.conf${Off}" >&2
-        fi
-    fi
 }
 
 dts_ebox(){ 
@@ -1102,7 +994,7 @@ edit_modeldtb(){
             # Edit model.dts
             for c in "${eboxs[@]}"; do
                 # Edit model.dts if needed
-                if ! grep "$c" "$dtb_file" >/dev/null; then
+                if ! grep -q "$c" "$dtb_file"; then
                     dts_ebox "$c" "$dts_file"
                     echo -e "Added ${Cyan}$c${Off} to ${Yellow}model${hwrev}.dtb${Off}" >&2
                     reboot=yes
@@ -1130,37 +1022,27 @@ edit_modeldtb(){
 # Select expansion unit to enable
  
 # Show currently enabled eunit(s)
-show_enabled
+check_enabled
 
 enable_eunit(){ 
     case "$choice" in
         DX517|DX513|DX510)
-            # synoinfo.conf support_ew_20_eunit related to extended warranty
-            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
         DX213)
-            # synoinfo.conf support_ew_20_eunit related to extended warranty
-            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
         RX418|RX415|RX410)
-            # synoinfo.conf support_ew_20_eunit related to extended warranty
-            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
         RX1217rp|RX1217|RX1214rp|RX1214|RX1211rp|RX1211)
-            # synoinfo.conf support_ew_20_eunit related to extended warranty
-            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
         DX1215II|DX1215|DX1211)
-            # synoinfo.conf support_ew_20_eunit related to extended warranty
-            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
@@ -1184,8 +1066,7 @@ enable_eunit(){
 _12bays=("RX1217rp" "RX1217" "RX1214rp" "RX1214" "RX1211rp" "RX1211" \
 "DX1215II" "DX1215" "DX1211")
 
-eunits=("Check" \
-"DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" \
+eunits=("DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" \
 "RX1217rp" "RX1217" "RX1214rp" "RX1214" "RX1211rp" "RX1211" \
 "DX1215II" "DX1215" "DX1211" \
 "Restore" "Quit")
@@ -1205,6 +1086,7 @@ else
     select choice in "${eunits[@]}"; do
         echo -e "You selected $choice \n"
         enable_eunit
+        break
     done
 fi
 #echo ""
