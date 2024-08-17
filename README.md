@@ -51,8 +51,7 @@ This script will work for InfiniBand expansion units with the following Synology
 
 | Model   | Works | Confirmed |
 |---------|-------|-----------|
-| RS2421+ | yes | |
-| RS2421RP+ | yes | |
+| RS2421+, RS2421RP+ | yes | |
 | RS2821RP+ | yes | |
 
 - The RackStation models above already have RX1217RP and RX1217 enabled.
