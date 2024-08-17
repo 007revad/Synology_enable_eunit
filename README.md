@@ -102,7 +102,9 @@ sudo -s /volume1/scripts/syno_enable_eunit.sh
   -r, --restore         Restore from backups to undo changes
       --unit=EUNIT      Automatically enable specified expansion unit
                           Only needed when script is scheduled
-                          EUNIT is dx517, dx513, dx213, dx510, rx418, rx415 or rx410
+                          EUNIT is dx517, dx513, dx213, dx510, rx418, rx415,
+                          rx410, rx1217rp, rx1217, rx1214r, rx1214, rxX1211rp,
+                          rx1211, dx1215ii, dx1215 or dx1211
   -e, --email           Disable colored text in output scheduler emails
       --autoupdate=AGE  Auto update script (useful when script is scheduled)
                           AGE is how many days old a release must be before
