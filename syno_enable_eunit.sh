@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v2.1.13"
+scriptver="v2.2.14"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -48,8 +48,9 @@ Options:
   -r, --restore         Restore from backups to undo changes
       --unit=EUNIT      Automatically enable specified expansion unit
                           Only needed when script is scheduled
-                          EUNIT is dx517, dx513, dx213, dx510, rx418,
-                          rx415 or rx410
+                          EUNIT is dx517, dx513, dx213, dx510, rx418, rx415,
+                          rx410, rx1217rp, rx1217, rx1214r, rx1214, rxX1211rp,
+                          rx1211, dx1215ii, dx1215 or dx1211
   -e, --email           Disable colored text in output scheduler emails
       --autoupdate=AGE  Auto update script (useful when script is scheduled)
                           AGE is how many days old a release must be before
@@ -72,9 +73,8 @@ EOF
 }
 
 
-# Save options used
+# Save options used for getopts
 args=("$@")
-
 
 autoupdate=""
 
@@ -105,8 +105,14 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -l \
                 break
                 ;;
             --unit)             # Specify eunit to enable for task scheduler
-                if [[ ${2,,} =~ ^(d|r)x[0-9]+$ ]]; then
-                    unit="${2^^}"
+                if [[ ${2,,} =~ ^(d|r)x[0-9]+(rp|ii)?$ ]]; then
+                    if [[ ${2:(-2)} == "rp" ]]; then
+                        # Convert to upper case except rp at end
+                        unit="$(b=${2:0:-2} && echo -n "${b^^}")rp"
+                    else
+                        # Convert to upper case
+                        unit="${2^^}"
+                    fi
                 else
                     echo -e "Invalid argument '$2'\n"
                     exit 2  # Invalid argument
@@ -664,24 +670,24 @@ check_modeldtb(){
 }
 
 check_enabled(){ 
-    # /etc.defaults/synoinfo.conf
-    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
-    IFS=',' read -r -a eunits_array <<< "$setting"
-    for e in "${eunits_array[@]}"; do
-        echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo}${Off}"
-    done
-    echo ""
-
-    # /etc/synoinfo.conf
-    setting2=$(/usr/syno/bin/synogetkeyvalue "$synoinfo2" support_ew_20_eunit)
-    IFS=',' read -r -a eunits_array2 <<< "$setting2"
-    for e in "${eunits_array2[@]}"; do
-#        if [[ ${eunits_array[*]} =~ "$e" ]]; then
-        if [[ ${eunits_array[*]} =~ $e ]]; then
-            echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo2}${Off}"
-        fi
-    done
-    echo ""
+# synoinfo.conf support_ew_20_eunit related to extended warranty
+#    # /etc.defaults/synoinfo.conf
+#    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
+#    IFS=',' read -r -a eunits_array <<< "$setting"
+#    for e in "${eunits_array[@]}"; do
+#        echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo}${Off}"
+#    done
+#    echo ""
+#
+#    # /etc/synoinfo.conf
+#    setting2=$(/usr/syno/bin/synogetkeyvalue "$synoinfo2" support_ew_20_eunit)
+#    IFS=',' read -r -a eunits_array2 <<< "$setting2"
+#    for e in "${eunits_array2[@]}"; do
+#        if [[ ${eunits_array[*]} =~ $e ]]; then
+#            echo -e "${Cyan}${e#Synology-}${Off} is enabled in ${Yellow}${synoinfo2}${Off}"
+#        fi
+#    done
+#    echo ""
 
     for e in "${eunits_array[@]}"; do
         check_modeldtb "${e#Synology-}"
@@ -697,15 +703,16 @@ fi
 
 
 show_enabled(){ 
-    # /etc.defaults/synoinfo.conf
-    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
-    IFS=',' read -r -a eunits_array <<< "$setting"
-    # /etc/synoinfo.conf
-    setting2=$(/usr/syno/bin/synogetkeyvalue "$synoinfo2" support_ew_20_eunit)
-    IFS=',' read -r -a eunits_array2 <<< "$setting2"
+# synoinfo.conf support_ew_20_eunit related to extended warranty
+#    # /etc.defaults/synoinfo.conf
+#    setting=$(/usr/syno/bin/synogetkeyvalue "$synoinfo" support_ew_20_eunit)
+#    IFS=',' read -r -a eunits_array <<< "$setting"
+#    # /etc/synoinfo.conf
+#    setting2=$(/usr/syno/bin/synogetkeyvalue "$synoinfo2" support_ew_20_eunit)
+#    IFS=',' read -r -a eunits_array2 <<< "$setting2"
+
     for e in "${eunits_array[@]}"; do
         count="1"
-#        if [[ ${eunits_array2[*]} =~ "$e" ]]; then
         if [[ ${eunits_array2[*]} =~ $e ]]; then
             count=$((count +1))
         fi
@@ -760,6 +767,8 @@ backupdb(){
 }
 
 edit_synoinfo(){ 
+# synoinfo.conf support_ew_20_eunit related to extended warranty
+
     # $1 is the eunit model
     if [[ -n $1 ]]; then
         # Check if already enabled in synoinfo.conf
@@ -907,6 +916,112 @@ elif [[ $1 == RX418 ]] || [[ $1 == RX415 ]] || [[ $1 == RX410 ]]; then
 };
 EORX4bay
 
+elif [[ ${_12bays[*]} =~ $1 ]]; then
+    cat >> "$2" <<EORX12bay
+
+	$1 {
+		compatible = "Synology";
+		model = "synology_rx1217rp";
+
+		pmp_slot@1 {
+
+			libata {
+				EMID = <0x00>;
+				pmp_link = <0x00>;
+			};
+		};
+
+		pmp_slot@2 {
+
+			libata {
+				EMID = <0x00>;
+				pmp_link = <0x01>;
+			};
+		};
+
+		pmp_slot@3 {
+
+			libata {
+				EMID = <0x00>;
+				pmp_link = <0x02>;
+			};
+		};
+
+		pmp_slot@4 {
+
+			libata {
+				EMID = <0x01>;
+				pmp_link = <0x00>;
+			};
+		};
+
+		pmp_slot@5 {
+
+			libata {
+				EMID = <0x01>;
+				pmp_link = <0x01>;
+			};
+		};
+
+		pmp_slot@6 {
+
+			libata {
+				EMID = <0x01>;
+				pmp_link = <0x02>;
+			};
+		};
+
+		pmp_slot@7 {
+
+			libata {
+				EMID = <0x02>;
+				pmp_link = <0x00>;
+			};
+		};
+
+		pmp_slot@8 {
+
+			libata {
+				EMID = <0x02>;
+				pmp_link = <0x01>;
+			};
+		};
+
+		pmp_slot@9 {
+
+			libata {
+				EMID = <0x02>;
+				pmp_link = <0x02>;
+			};
+		};
+
+		pmp_slot@10 {
+
+			libata {
+				EMID = <0x03>;
+				pmp_link = <0x00>;
+			};
+		};
+
+		pmp_slot@11 {
+
+			libata {
+				EMID = <0x03>;
+				pmp_link = <0x01>;
+			};
+		};
+
+		pmp_slot@12 {
+
+			libata {
+				EMID = <0x03>;
+				pmp_link = <0x02>;
+			};
+		};
+	};
+};
+EORX12bay
+
 fi
 }
 
@@ -1019,38 +1134,33 @@ show_enabled
 
 enable_eunit(){ 
     case "$choice" in
-        DX517)
-            edit_synoinfo "$choice"
-            eboxs=("$choice") && edit_modeldtb
-            return
-        ;;
-        DX513)
-            edit_synoinfo "$choice"
+        DX517|DX513|DX510)
+            # synoinfo.conf support_ew_20_eunit related to extended warranty
+            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
         DX213)
-            edit_synoinfo "$choice"
+            # synoinfo.conf support_ew_20_eunit related to extended warranty
+            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
-        DX510)
-            edit_synoinfo "$choice"
+        RX418|RX415|RX410)
+            # synoinfo.conf support_ew_20_eunit related to extended warranty
+            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
-        RX418)
-            edit_synoinfo "$choice"
+        RX1217rp|RX1217|RX1214rp|RX1214|RX1211rp|RX1211)
+            # synoinfo.conf support_ew_20_eunit related to extended warranty
+            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
-        RX415)
-            edit_synoinfo "$choice"
-            eboxs=("$choice") && edit_modeldtb
-            return
-        ;;
-        RX410)
-            edit_synoinfo "$choice"
+        DX1215II|DX1215|DX1211)
+            # synoinfo.conf support_ew_20_eunit related to extended warranty
+            #edit_synoinfo "$choice"
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
@@ -1071,11 +1181,19 @@ enable_eunit(){
     esac
 }
 
-eunits=("Check" "DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" "Restore" "Quit")
+_12bays=("RX1217rp" "RX1217" "RX1214rp" "RX1214" "RX1211rp" "RX1211" \
+"DX1215II" "DX1215" "DX1211")
+
+eunits=("Check" \
+"DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" \
+"RX1217rp" "RX1217" "RX1214rp" "RX1214" "RX1211rp" "RX1211" \
+"DX1215II" "DX1215" "DX1211" \
+"Restore" "Quit")
+
 if [[ -n $unit ]]; then
     # Expansion Unit supplied as argument
-    if [[ ${eunits[*]} =~ "${unit^^}" ]]; then
-        choice="${unit^^}"
+    if [[ ${eunits[*]} =~ ${unit} ]]; then
+        choice="${unit}"
         echo -e "$choice selected\n"
         enable_eunit
     else
