@@ -1,3 +1,6 @@
+v3.0.16
+- Changed so when a RX RP model is selected both RP and non-RP models are enabled.
+
 v3.0.15
 - Added check that the Synology NAS has an eSATA port or Inifinband port.
 - Bug fix for incorrectly thinking RXnnnn was already enabled if RXnnnnRP was already enabled.
