@@ -1,11 +1,15 @@
 v3.0.16
-- Changed so when a RX RP model is selected both RP and non-RP models are enabled.
+- Added check that the Synology NAS has an eSATA port or Inifinband port.
+- Added support for InfiniBand expansion units for RS2421+, RS2421RP+ and RS2821RP+ NAS.
+  - Supports RX1217RP, RX1217, RX1214RP, RX1214, RX1211RP, RX1211, DX1215II, DX1215 or DX1211 expansion units.
+  - When selecting RX1214RP or RX1211RP both RP and non-RP models are enabled.
+- Removed editing synoinfo.conf as "support_ew_20_eunit" only relates to extended warranty.
 
-v3.0.15
+v3.0.15-RC
 - Added check that the Synology NAS has an eSATA port or Inifinband port.
 - Bug fix for incorrectly thinking RXnnnn was already enabled if RXnnnnRP was already enabled.
 
-v3.0.14
+v3.0.14-RC
 - Added support for InfiniBand expansion units for RS2421+, RS2421RP+ and RS2821RP+ NAS.
   - Supports RX1217RP, RX1217, RX1214RP, RX1214, RX1211RP, RX1211, DX1215II, DX1215 or DX1211 expansion units.
 - Removed editing synoinfo.conf as "support_ew_20_eunit" only relates to extended warranty.
