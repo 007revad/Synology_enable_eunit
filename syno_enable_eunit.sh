@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v3.0.14"
+scriptver="v3.0.16"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -221,7 +221,19 @@ if [[ ${#args[@]} -gt "0" ]]; then
 fi
 
 # Check Synology has a expansion port
-# How?
+# eSATA and InfiniBand ports both appear in syno_slot_mapping as:
+# Esata port count: 1
+# Eunit port 1 - RX1214
+if which syno_slot_mapping >/dev/null; then
+    esata_ports=$(syno_slot_mapping | grep 'Esata port count' | awk '{print $4}')
+    if [[ $esata_ports -lt "1" ]]; then
+        echo -e "${Error}ERROR${Off} Synology NAS has not expansion port(s)!"
+        exit 1  # No expansion port(s)
+    fi
+else
+    echo -e "${Error}ERROR${Off} Unsupported Synology NAS model. No syno_slot_mapping command!"
+    exit 1  # No syno_slot_mapping file
+fi
 
 
 #------------------------------------------------------------------------------
@@ -425,22 +437,17 @@ fi
 #------------------------------------------------------------------------------
 # Show connected expansion units
 
-if which syno_slot_mapping >/dev/null; then
-    #found_eunits=($(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}'))
-    read -r -a found_eunits <<< "$(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}')"
-    echo "Connected Expansion Units:"
-    if [[ ${#found_eunits[@]} -gt "0" ]]; then
-        for e in "${found_eunits[@]}"; do
-            echo -e "${Cyan}$e${Off}"
-        done
-    else
-        echo -e "${Cyan}None${Off}"
-    fi
-    #echo ""
+#found_eunits=($(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}'))
+read -r -a found_eunits <<< "$(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}')"
+echo "Connected Expansion Units:"
+if [[ ${#found_eunits[@]} -gt "0" ]]; then
+    for e in "${found_eunits[@]}"; do
+        echo -e "${Cyan}$e${Off}"
+    done
 else
-    echo -e "${Error}ERROR${Off} Unsupported Synology NAS model. No syno_slot_mapping command!"
-    exit 1  # No syno_slot_mapping file
+    echo -e "${Cyan}None${Off}"
 fi
+#echo ""
 
 
 #------------------------------------------------------------------------------
@@ -616,14 +623,14 @@ supported_eunits=("DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" \
 check_modeldtb(){ 
     # $1 is DX517 or RX418 etc
     if [[ -f "${dtb2_file}" ]]; then
-        if grep -q --text "$1" "${dtb2_file}"; then
+        if grep -q "$1"'\b' "${dtb2_file}"; then
             echo -e "${Cyan}$1${Off} is enabled in ${Yellow}${dtb2_file}${Off}" >& 2
         else
             echo -e "${Cyan}$1${Off} is ${Cyan}not${Off} enabled in ${Yellow}${dtb2_file}${Off}" >& 2
         fi
     fi
     if [[ -f "${dtb_file}" ]]; then
-        if grep -q --text "$1" "${dtb_file}"; then
+        if grep -q "$1"'\b' "${dtb_file}"; then
             echo -e "${Cyan}$1${Off} is enabled in ${Yellow}${dtb_file}${Off}" >& 2
         else
             echo -e "${Cyan}$1${Off} is ${Cyan}not${Off} enabled in ${Yellow}${dtb_file}${Off}" >& 2
@@ -634,7 +641,7 @@ check_modeldtb(){
 check_enabled(){ 
     echo ""
     for e in "${supported_eunits[@]}"; do
-        if grep -q --text "$e" "${dtb_file}"; then
+        if grep -q "$e"'\b' "${dtb_file}"; then
             check_modeldtb "${e#Synology-}"
         fi
     done
@@ -994,7 +1001,7 @@ edit_modeldtb(){
             # Edit model.dts
             for c in "${eboxs[@]}"; do
                 # Edit model.dts if needed
-                if ! grep -q "$c" "$dtb_file"; then
+                if ! grep -q "$c"'\b' "$dtb_file"; then
                     dts_ebox "$c" "$dts_file"
                     echo -e "Added ${Cyan}$c${Off} to ${Yellow}model${hwrev}.dtb${Off}" >&2
                     reboot=yes
@@ -1042,7 +1049,17 @@ enable_eunit(){
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
-        DX1215II|DX1215|DX1211)
+        RX1217rp|RX1214rp|RX1211rp)
+            eboxes=("$choice")
+            eboxes+=("${choice//rp}")  # Also add non-RP model
+            edit_modeldtb
+            return
+        ;;
+        RX1217|RX1214|RX1211)
+            eboxes=("$choice") && edit_modeldtb
+            return
+        ;;
+ 	DX1215II|DX1215|DX1211)
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
