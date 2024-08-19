@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v3.0.15"
+scriptver="v3.0.16"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -1049,7 +1049,17 @@ enable_eunit(){
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
-        DX1215II|DX1215|DX1211)
+        RX1217rp|RX1214rp|RX1211rp)
+            eboxes=("$choice")
+            eboxes+=("${choice//rp}")  # Also add non-RP model
+            edit_modeldtb
+            return
+        ;;
+        RX1217|RX1214|RX1211)
+            eboxes=("$choice") && edit_modeldtb
+            return
+        ;;
+ 	DX1215II|DX1215|DX1211)
             eboxs=("$choice") && edit_modeldtb
             return
         ;;
