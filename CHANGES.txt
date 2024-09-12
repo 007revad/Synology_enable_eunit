@@ -1,3 +1,6 @@
+v3.0.17
+- Changed to also enable RX1217, RX1214 or RX1211 when RX1217rp, RX1214rp or RX1211rp selected.
+
 v3.0.16
 - Added check that the Synology NAS has an eSATA port or Inifinband port.
 - Added support for InfiniBand expansion units for RS2421+, RS2421RP+ and RS2821RP+ NAS.
