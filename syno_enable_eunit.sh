@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v3.0.16"
+scriptver="v3.0.17"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -999,7 +999,7 @@ edit_modeldtb(){
             chmod 644 "$dts_file"
 
             # Edit model.dts
-            for c in "${eboxs[@]}"; do
+            for c in "${eboxes[@]}"; do
                 # Edit model.dts if needed
                 if ! grep -q "$c"'\b' "$dtb_file"; then
                     dts_ebox "$c" "$dts_file"
@@ -1034,19 +1034,15 @@ check_enabled
 enable_eunit(){ 
     case "$choice" in
         DX517|DX513|DX510)
-            eboxs=("$choice") && edit_modeldtb
+            eboxes=("$choice") && edit_modeldtb
             return
         ;;
         DX213)
-            eboxs=("$choice") && edit_modeldtb
+            eboxes=("$choice") && edit_modeldtb
             return
         ;;
         RX418|RX415|RX410)
-            eboxs=("$choice") && edit_modeldtb
-            return
-        ;;
-        RX1217rp|RX1217|RX1214rp|RX1214|RX1211rp|RX1211)
-            eboxs=("$choice") && edit_modeldtb
+            eboxes=("$choice") && edit_modeldtb
             return
         ;;
         RX1217rp|RX1214rp|RX1211rp)
@@ -1059,8 +1055,8 @@ enable_eunit(){
             eboxes=("$choice") && edit_modeldtb
             return
         ;;
- 	DX1215II|DX1215|DX1211)
-            eboxs=("$choice") && edit_modeldtb
+        DX1215II|DX1215|DX1211)
+            eboxes=("$choice") && edit_modeldtb
             return
         ;;
         Check)
