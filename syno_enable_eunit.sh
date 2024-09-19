@@ -175,7 +175,7 @@ fi
 if [[ $( whoami ) != "root" ]]; then
     ding
     echo -e "${Error}ERROR${Off} This script must be run as sudo or root!"
-    exit 1  #  running as sudo or root
+    exit 1  # Not running as sudo or root
 fi
 
 # Get DSM major and minor versions
