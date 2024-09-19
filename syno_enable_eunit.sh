@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v3.0.17"
+scriptver="v3.0.18"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -227,7 +227,7 @@ fi
 if which syno_slot_mapping >/dev/null; then
     esata_ports=$(syno_slot_mapping | grep 'Esata port count' | awk '{print $4}')
     if [[ $esata_ports -lt "1" ]]; then
-        echo -e "${Error}ERROR${Off} Synology NAS has not expansion port(s)!"
+        echo -e "${Error}ERROR${Off} Synology NAS has no expansion port(s)!"
         exit 1  # No expansion port(s)
     fi
 else
