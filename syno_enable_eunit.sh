@@ -117,7 +117,6 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -l \
                     echo -e "Invalid argument '$2'\n"
                     exit 2  # Invalid argument
                 fi
-                break
                 ;;
             -e|--email)         # Disable colour text in task scheduler emails
                 color=no
