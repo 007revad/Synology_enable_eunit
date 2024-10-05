@@ -1,5 +1,5 @@
 v3.0.18
-- Bug fix for no processing --email or --autoupdate when --unit option was used.
+- Bug fix for not processing --email or --autoupdate when --unit option was used.
 
 v3.0.17
 - Changed to also enable RX1217, RX1214 or RX1211 when RX1217rp, RX1214rp or RX1211rp selected.
