@@ -1,3 +1,6 @@
+v3.0.19
+- Bug fix when --unit option used (in v3.018).
+
 v3.0.18
 - Bug fix for not processing --email or --autoupdate when --unit option was used.
 
