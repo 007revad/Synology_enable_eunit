@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v3.0.18"
+scriptver="v3.0.19"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -73,7 +73,7 @@ EOF
 }
 
 
-# Save options used for getopts
+# Save options used for getopt
 args=("$@")
 
 autoupdate=""
@@ -117,6 +117,7 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -l \
                     echo -e "Invalid argument '$2'\n"
                     exit 2  # Invalid argument
                 fi
+                shift
                 ;;
             -e|--email)         # Disable colour text in task scheduler emails
                 color=no
