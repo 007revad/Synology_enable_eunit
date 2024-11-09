@@ -36,7 +36,7 @@ This script will work for eSATA expansion units with the following Synology NAS 
 | DS1520+ | yes | |
 | DS923+  | yes | |
 | DS920+  | yes | |
-| DS723+  | yes | |
+| DS723+  | yes | DX213 |
 | DS720+  | yes | DX513, DX213, RX418 |
 | RS1221+, RS1221RP+ | yes | DX517 |
 | RS822+, RS822RP+ | yes | |
