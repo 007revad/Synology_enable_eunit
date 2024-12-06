@@ -44,6 +44,15 @@ This script will work for eSATA expansion units with the following Synology NAS 
 - The DiskStation models above already have DX517 enabled.
 - The RackStation models above already have RX418 enabled.
 
+**Models that work without the script**
+
+| Model   | Works | Confirmed |
+|---------|-------|-----------|
+| DS918+ | yes | DX513, DX213 |
+| DS718+ | yes | DX513, DX213 |
+| DS218+ | yes | DX513, DX213 |
+
+
 #### eSATA expansion unit speeds
 
 | Model | eSATA Speed | Notes |
