@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v3.0.19"
+scriptver="v3.0.20"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -1024,6 +1024,15 @@ edit_modeldtb(){
     fi
 }
 
+disable_ncq(){ 
+    # Disable NCQ for drives in the DX (set queue depth of NCQ to 1 element)
+    DX_NAME=$1      # Capitalization of the name is important
+    DX_DISK_NUM=$2  # Max number of disks supported by the expansion unit
+    DX_DISKS=$(syno_disk_dump | grep "^Eunit disk info: $DX_NAME\$" -A $DX_DISK_NUM | tail -n+2 | head -n$DX_DISK_NUM | cut -d: -f2 | cut -f1 | xargs)
+    for dx_disk in $DX_DISKS; do
+        syno_disk_ctl --ncq-off $dx_disk
+    done
+} 
 
 #------------------------------------------------------------------------------
 # Select expansion unit to enable
@@ -1033,16 +1042,27 @@ check_enabled
 
 enable_eunit(){ 
     case "$choice" in
-        DX517|DX513|DX510)
+        DX517)
             eboxes=("$choice") && edit_modeldtb
+            return
+        ;;
+        DX513|DX510)
+            eboxes=("$choice") && edit_modeldtb
+            disable_ncq "$choice" 5
             return
         ;;
         DX213)
             eboxes=("$choice") && edit_modeldtb
+            disable_ncq "$choice" 2
             return
         ;;
-        RX418|RX415|RX410)
+        RX418|RX415)
             eboxes=("$choice") && edit_modeldtb
+            return
+        ;;
+        RX410)
+            eboxes=("$choice") && edit_modeldtb
+            disable_ncq "$choice" 4
             return
         ;;
         RX1217rp|RX1214rp|RX1211rp)
