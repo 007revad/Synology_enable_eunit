@@ -1,3 +1,6 @@
+v3.0.20
+- Set NCQ to 1 for drives in DX513, DX213, DX510 and RX410. Issue #57
+
 v3.0.19
 - Bug fix when --unit option used (introduced in v3.0.18).
 
