@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v3.0.20"
+scriptver="v3.0.21"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -1030,7 +1030,12 @@ disable_ncq(){
     DX_DISK_NUM=$2  # Max number of disks supported by the expansion unit
     DX_DISKS=$(syno_disk_dump | grep "^Eunit disk info: $DX_NAME\$" -A $DX_DISK_NUM | tail -n+2 | head -n$DX_DISK_NUM | cut -d: -f2 | cut -f1 | xargs)
     for dx_disk in $DX_DISKS; do
-        syno_disk_ctl --ncq-off $dx_disk
+        # Only set --ncq-off for HDDs
+        if synodisk --isssd "$dx_disk" >/dev/null; then
+            # exit code 0 = is not SSD
+            # exit code 1 = is SSD
+            syno_disk_ctl --ncq-off "$dx_disk"
+        fi
     done
 } 
 
