@@ -1,6 +1,3 @@
-v3.0.21
-- Only set --ncq-off for HDDs (not SSDs).
-
 v3.0.20
 - Set NCQ to 1 for drives in DX513, DX213, DX510 and RX410. Issue #57
 
