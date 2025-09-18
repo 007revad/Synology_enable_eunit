@@ -1,3 +1,6 @@
+v3.0.22
+- Update disable_ncq function to work for multiple same eunits. Credit @steinreiter
+
 v3.0.20
 - Set NCQ to 1 for drives in DX513, DX213, DX510 and RX410. Issue #57
 
