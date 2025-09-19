@@ -1,3 +1,6 @@
+v3.1.24
+- Fixed only listing the 1st expansion unit found when 2 different expansion unit models are connected.
+
 v3.1.23
 - Added support for --unit option to take an argument of multiple comma separated expansion units.
   - For example: --unit=dx213,dx513,rx418
