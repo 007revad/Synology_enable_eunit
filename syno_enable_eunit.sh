@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v3.1.23"
+scriptver="v3.1.24"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -450,8 +450,7 @@ fi
 #------------------------------------------------------------------------------
 # Show connected expansion units
 
-#found_eunits=($(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}'))
-read -r -a found_eunits <<< "$(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}')"
+found_eunits=($(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}'))
 echo "Connected Expansion Units:"
 if [[ ${#found_eunits[@]} -gt "0" ]]; then
     for e in "${found_eunits[@]}"; do
