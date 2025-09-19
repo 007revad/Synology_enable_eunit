@@ -1,5 +1,5 @@
 v3.1.23
-- Added support for --unit option to take an argument of multiple comma seperated expansion units.
+- Added support for --unit option to take an argument of multiple comma separated expansion units.
   - For example: --unit=dx213,dx513,rx418
 
 v3.0.22
