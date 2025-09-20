@@ -1,5 +1,6 @@
 v3.1.24
 - Fixed only listing the 1st expansion unit found when 2 different expansion unit models are connected.
+- Changed to show port number of connected expansion units.
 
 v3.1.23
 - Added support for --unit option to take an argument of multiple comma separated expansion units.
