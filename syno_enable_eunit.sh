@@ -112,16 +112,20 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -l \
                             if [[ $i =~ ^(d|r)x[0-9]+(rp|ii)?$ ]]; then
                                 if [[ ${i:(-2)} == "rp" ]]; then
                                     # Convert to upper case except rp at end
-                                    units+=("$(b=${i:0:-2} && echo -n "${b^^}")rp")
+                                    units_tmp+=("$(b=${i:0:-2} && echo -n "${b^^}")rp")
                                 else
                                     # Convert to upper case
-                                    units+=("${i^^}")
+                                    units_tmp+=("${i^^}")
                                 fi
                             else
                                 echo -e "Invalid argument '$2'\n"
                                 exit 2  # Invalid argument
                             fi
                         done
+                        # Sort array to remove duplicates
+                        IFS=$'\n'
+                        units=($(sort -u <<<"${unist_tmp[*]}"))
+                        unset IFS
                     else
                         echo -e "Invalid argument '$2'\n"
                         exit 2  # Invalid argument
@@ -450,7 +454,9 @@ fi
 #------------------------------------------------------------------------------
 # Show connected expansion units
 
-found_eunits=($(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}'))
+# shellcheck disable=SC2207
+#found_eunits=($(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}'))
+found_eunits=($(syno_slot_mapping | grep 'Eunit port'))  # Also show port number
 echo "Connected Expansion Units:"
 if [[ ${#found_eunits[@]} -gt "0" ]]; then
     for e in "${found_eunits[@]}"; do
@@ -1118,11 +1124,16 @@ eunits=("DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" \
 
 if [[ ${#units[@]} -gt "0" ]]; then
     # Expansion Unit supplied as argument
+    num=0
     for e in "${units[@]}"; do
         if [[ ${eunits[*]} =~ $e ]]; then
             choice="$e"
+            if [[ $num -gt "0" ]]; then
+                echo ""  # Formatting for more than 1 eunit model
+            fi
             echo -e "$choice selected\n"
             enable_eunit
+            num=$((num+1))
         else
             echo -e "Unsupported expansion unit argument: $e\n"
             exit 2  # Unsupported expansion unit argument
