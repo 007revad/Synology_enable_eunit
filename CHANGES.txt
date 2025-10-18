@@ -1,3 +1,7 @@
+v3.1.25
+- Fixed bug when setting the expansions unit with --unit=. #102
+- Fixed bug in how "Connected Expansion Units" were listed. 
+
 v3.1.24
 - Fixed only listing the 1st expansion unit found when 2 different expansion unit models are connected.
 - Changed to show port number of connected expansion units.
