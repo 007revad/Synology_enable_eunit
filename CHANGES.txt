@@ -1,5 +1,5 @@
 v3.1.25
-- Fixed bug when setting the expansions unit with --unit=. #102
+- Fixed bug when specifying the expansion unit with `--unit= option`. Issue #60
 - Fixed bug in how "Connected Expansion Units" were listed. 
 
 v3.1.24
