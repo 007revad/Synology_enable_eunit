@@ -126,7 +126,7 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -l \
                         done
                         # Sort array to remove duplicates
                         IFS=$'\n'
-                        units=($(sort -u <<<"${unist_tmp[*]}"))
+                        units=($(sort -u <<<"${units_tmp[*]}"))
                         unset IFS
                     else
                         echo -e "Invalid argument '$2'\n"
