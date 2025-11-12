@@ -1,3 +1,21 @@
+v3.1.25
+- Fixed bug when specifying the expansion unit with `--unit= option`. Issue #60
+- Fixed bug in how "Connected Expansion Units" were listed. 
+
+v3.1.24
+- Fixed only listing the 1st expansion unit found when 2 different expansion unit models are connected.
+- Changed to show port number of connected expansion units.
+
+v3.1.23
+- Added support for --unit option to take an argument of multiple comma separated expansion units.
+  - For example: --unit=dx213,dx513,rx418
+
+v3.0.22
+- Update disable_ncq function to work for multiple same eunits. Credit @steinreiter
+
+v3.0.20
+- Set NCQ to 1 for drives in DX513, DX213, DX510 and RX410. Issue #57
+
 v3.0.19
 - Bug fix when --unit option used (introduced in v3.0.18).
 

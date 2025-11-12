@@ -126,6 +126,8 @@ sudo -s /volume1/scripts/syno_enable_eunit.sh
                           EUNIT is dx517, dx513, dx213, dx510, rx418, rx415,
                           rx410, rx1217rp, rx1217, rx1214r, rx1214, rxX1211rp,
                           rx1211, dx1215ii, dx1215 or dx1211
+                          EUNIT can be multiple comma separated eunits
+                          e.g. --unit=dx513,rx418
   -e, --email           Disable colored text in output scheduler emails
       --autoupdate=AGE  Auto update script (useful when script is scheduled)
                           AGE is how many days old a release must be before
@@ -159,6 +161,9 @@ After any DSM update you will need to run this script again, if you don't have i
 
 <p align="center">Restore option</p>
 <p align="center"><img src="/images/restore.png"></p>
+
+<p align="center">Specifying eunits with unit option</p>
+<p align="center"><img src="/images/unit_option.png"></p>
 
 <p align="center">DS1821+ with a DX213</p>
 <p align="center"><img src="/images/1821+dx213-1.png"></p>

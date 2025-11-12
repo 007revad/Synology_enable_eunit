@@ -12,7 +12,7 @@
 # sudo -i /volume1/scripts/syno_enable_eunit.sh
 #-----------------------------------------------------------------------------------
 
-scriptver="v3.0.19"
+scriptver="v3.1.25"
 script=Synology_enable_eunit
 repo="007revad/Synology_enable_eunit"
 scriptname=syno_enable_eunit
@@ -51,6 +51,8 @@ Options:
                           EUNIT is dx517, dx513, dx213, dx510, rx418, rx415,
                           rx410, rx1217rp, rx1217, rx1214r, rx1214, rxX1211rp,
                           rx1211, dx1215ii, dx1215 or dx1211
+						  EUNIT can be multiple comma separated eunits
+						  e.g. --unit=dx513,rx418
   -e, --email           Disable colored text in output scheduler emails
       --autoupdate=AGE  Auto update script (useful when script is scheduled)
                           AGE is how many days old a release must be before
@@ -105,17 +107,34 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -l \
                 break
                 ;;
             --unit)             # Specify eunit to enable for task scheduler
-                if [[ ${2,,} =~ ^(d|r)x[0-9]+(rp|ii)?$ ]]; then
-                    if [[ ${2:(-2)} == "rp" ]]; then
-                        # Convert to upper case except rp at end
-                        unit="$(b=${2:0:-2} && echo -n "${b^^}")rp"
+                if [[ $2 ]]; then
+                    IFS=',' read -r -a unit_args <<< "$2"; unset IFS
+                    if [[ ${#unit_args[@]} -gt "0" ]]; then
+                        for i in "${unit_args[@]}"; do
+                            if [[ $i =~ ^(d|r)x[0-9]+(rp|ii)?$ ]]; then
+                                if [[ ${i:(-2)} == "rp" ]]; then
+                                    # Convert to upper case except rp at end
+                                    units_tmp+=("$(b=${i:0:-2} && echo -n "${b^^}")rp")
+                                else
+                                    # Convert to upper case
+                                    units_tmp+=("${i^^}")
+                                fi
+                            else
+                                echo -e "Invalid argument '$2'\n"
+                                exit 2  # Invalid argument
+                            fi
+                        done
+                        # Sort array to remove duplicates
+                        IFS=$'\n'
+                        units=($(sort -u <<<"${units_tmp[*]}"))
+                        unset IFS
                     else
-                        # Convert to upper case
-                        unit="${2^^}"
+                        echo -e "Invalid argument '$2'\n"
+                        exit 2  # Invalid argument
                     fi
                 else
-                    echo -e "Invalid argument '$2'\n"
-                    exit 2  # Invalid argument
+                    echo -e "Missing argument to unit!\n"
+                    exit 2  # Missing argument
                 fi
                 shift
                 ;;
@@ -437,8 +456,9 @@ fi
 #------------------------------------------------------------------------------
 # Show connected expansion units
 
-#found_eunits=($(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}'))
-read -r -a found_eunits <<< "$(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}')"
+# shellcheck disable=SC2207
+#found_eunits=("$(syno_slot_mapping | grep 'Eunit port' | awk '{print $NF}')")
+found_eunits=("$(syno_slot_mapping | grep 'Eunit port')")  # Also show port number
 echo "Connected Expansion Units:"
 if [[ ${#found_eunits[@]} -gt "0" ]]; then
     for e in "${found_eunits[@]}"; do
@@ -1024,6 +1044,15 @@ edit_modeldtb(){
     fi
 }
 
+disable_ncq(){ 
+    # Disable NCQ for drives in the DX (set queue depth of NCQ to 1 element) - credit @steinreiter
+    DX_NAME="$1"      # Capitalization of the name is important
+    DX_DISK_NUM="$2"  # Max number of disks supported by the expansion unit
+	DX_DISKS=$(syno_disk_dump | grep "^Eunit disk info: $DX_NAME\$" -A "$DX_DISK_NUM" | cut -d: -f2 | cut -f1 | xargs -L1 | grep -v "^$DX_NAME\$")
+    for dx_disk in $DX_DISKS; do
+        syno_disk_ctl --ncq-off "$dx_disk"
+    done
+} 
 
 #------------------------------------------------------------------------------
 # Select expansion unit to enable
@@ -1033,16 +1062,27 @@ check_enabled
 
 enable_eunit(){ 
     case "$choice" in
-        DX517|DX513|DX510)
+        DX517)
             eboxes=("$choice") && edit_modeldtb
+            return
+        ;;
+        DX513|DX510)
+            eboxes=("$choice") && edit_modeldtb
+            disable_ncq "$choice" 5
             return
         ;;
         DX213)
             eboxes=("$choice") && edit_modeldtb
+            disable_ncq "$choice" 2
             return
         ;;
-        RX418|RX415|RX410)
+        RX418|RX415)
             eboxes=("$choice") && edit_modeldtb
+            return
+        ;;
+        RX410)
+            eboxes=("$choice") && edit_modeldtb
+            disable_ncq "$choice" 4
             return
         ;;
         RX1217rp|RX1214rp|RX1211rp)
@@ -1084,16 +1124,23 @@ eunits=("DX517" "DX513" "DX213" "DX510" "RX418" "RX415" "RX410" \
 "DX1215II" "DX1215" "DX1211" \
 "Restore" "Quit")
 
-if [[ -n $unit ]]; then
+if [[ ${#units[@]} -gt "0" ]]; then
     # Expansion Unit supplied as argument
-    if [[ ${eunits[*]} =~ ${unit} ]]; then
-        choice="${unit}"
-        echo -e "$choice selected\n"
-        enable_eunit
-    else
-        echo -e "Unsupported expansion unit argument: $unit\n"
-        exit 2  # Unsupported expansion unit argument
-    fi
+    num=0
+    for e in "${units[@]}"; do
+        if [[ ${eunits[*]} =~ $e ]]; then
+            choice="$e"
+            if [[ $num -gt "0" ]]; then
+                echo ""  # Formatting for more than 1 eunit model
+            fi
+            echo -e "$choice selected\n"
+            enable_eunit
+            num=$((num+1))
+        else
+            echo -e "Unsupported expansion unit argument: $e\n"
+            exit 2  # Unsupported expansion unit argument
+        fi
+    done
 else
     PS3="Select your Expansion Unit: "
     select choice in "${eunits[@]}"; do
